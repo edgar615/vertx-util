@@ -13,8 +13,8 @@ import java.util.List;
  */
 class ParTaskImpl<T> extends BaseTask<List<T>> {
 
-    ParTaskImpl(List<Future<T>> futures) {
-        super(null, Future.<List<T>>future());
+    ParTaskImpl(String name, List<Future<T>> futures) {
+        super(name, Future.<List<T>>future());
         final int size = futures.size();
         List<Future> copyFuture = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
@@ -32,6 +32,10 @@ class ParTaskImpl<T> extends BaseTask<List<T>> {
                 fail(ar.cause());
             }
         });
+    }
+
+    ParTaskImpl(List<Future<T>> futures) {
+        this("ParTask", futures);
     }
 
 }

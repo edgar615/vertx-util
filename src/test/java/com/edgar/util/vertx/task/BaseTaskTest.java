@@ -49,6 +49,21 @@ public class BaseTaskTest {
     }
 
     @Test
+    public void testCreate(TestContext context) {
+        Async async = context.async();
+        Task<String> task = Task.create();
+        task.complete("Hello World");
+        task
+                .map(s -> s.toUpperCase())
+                .andThen(s -> context.assertEquals("HELLO WORLD", s))
+                .map(s -> s.length())
+                .andThen(length -> {
+                    context.assertEquals("Hello World".length(), length);
+                    async.complete();
+                });
+    }
+
+    @Test
     public void testMap(TestContext context) {
         Async async = context.async();
         Future<String> future = Future.future();

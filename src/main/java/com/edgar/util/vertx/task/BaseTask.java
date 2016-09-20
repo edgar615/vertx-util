@@ -52,7 +52,7 @@ class BaseTask<T> implements Task<T>, AsyncResult<T> {
     }
 
     BaseTask(Future<T> future) {
-        this(null, future);
+        this("createTask:", future);
     }
 
     @Override

@@ -11,8 +11,8 @@ import io.vertx.core.Future;
  */
 class Tuple3TaskImpl<T1, T2, T3> extends BaseTask<Tuple3<T1, T2, T3>> implements Tuple3Task<T1, T2, T3> {
 
-    Tuple3TaskImpl(Future<T1> futureT1, Future<T2> futureT2, Future<T3> futureT3) {
-        super(null, Future.<Tuple3<T1, T2, T3>>future());
+    Tuple3TaskImpl(String name, Future<T1> futureT1, Future<T2> futureT2, Future<T3> futureT3) {
+        super(name, Future.<Tuple3<T1, T2, T3>>future());
         CompositeFuture compositeFuture = CompositeFuture.all(futureT1, futureT2, futureT3);
         compositeFuture.setHandler(ar -> {
             if (ar.succeeded()) {
@@ -24,6 +24,10 @@ class Tuple3TaskImpl<T1, T2, T3> extends BaseTask<Tuple3<T1, T2, T3>> implements
                 fail(ar.cause());
             }
         });
+    }
+
+    Tuple3TaskImpl(Future<T1> futureT1, Future<T2> futureT2, Future<T3> futureT3) {
+        this("Tuple3Task:", futureT1, futureT2, futureT3);
     }
 
 }

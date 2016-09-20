@@ -10,42 +10,254 @@ import java.util.function.Function;
 
 /**
  * vert.x异步任务的工具类.
- * <p>
+ * <p/>
  * taks大部分的设计都参考了linkedin的parseq实现.
  *
  * @author Edgar  Date 2016/5/10
  */
 public interface Task<T> {
 
+    /**
+     * 创建一个异步任务.
+     * 该任务需要最后调用complete方法
+     *
+     * @param <T>
+     * @return task
+     */
+    public static <T> Task<T> create() {
+        return new BaseTask<>(Future.<T>future());
+    }
+
+    /**
+     * 创建一个异步任务
+     *
+     * @param name 任务名称
+     * @param <T>
+     * @return task
+     */
+    public static <T> Task<T> create(String name) {
+        return new BaseTask<>(name, Future.<T>future());
+    }
+
+    /**
+     * 基于Future创建一个异步任务.
+     *
+     * @param name   任务名称
+     * @param future Future
+     * @param <T>
+     * @return task
+     */
     public static <T> Task<T> create(String name, Future<T> future) {
         return new BaseTask<>(name, future);
     }
 
+    /**
+     * 基于Future创建一个异步任务.
+     *
+     * @param future Future
+     * @param <T>
+     * @return task
+     */
     public static <T> Task<T> create(Future<T> future) {
         return new BaseTask<>(future);
     }
 
+    /**
+     * 创建两个并行的任务.
+     *
+     * @param futureT1 任务1
+     * @param futureT2 任务2
+     * @param <T1>
+     * @param <T2>
+     * @return task
+     */
     public static <T1, T2> Tuple2Task<T1, T2> par(Future<T1> futureT1, Future<T2> futureT2) {
         return new Tuple2TaskImpl<>(futureT1, futureT2);
     }
 
+    /**
+     * 创建两个并行的任务.
+     *
+     * @param name     任务名
+     * @param futureT1 任务1
+     * @param futureT2 任务2
+     * @param <T1>
+     * @param <T2>
+     * @return task
+     */
+    public static <T1, T2> Tuple2Task<T1, T2> par(String name, Future<T1> futureT1, Future<T2> futureT2) {
+        return new Tuple2TaskImpl<>(name, futureT1, futureT2);
+    }
+
+    /**
+     * 创建三个并行的任务.
+     *
+     * @param futureT1 任务1
+     * @param futureT2 任务2
+     * @param futureT3 任务3
+     * @param <T1>
+     * @param <T2>
+     * @param <T3>
+     * @return task
+     */
     public static <T1, T2, T3> Tuple3Task<T1, T2, T3> par(Future<T1> futureT1, Future<T2> futureT2, Future<T3> futureT3) {
         return new Tuple3TaskImpl<>(futureT1, futureT2, futureT3);
     }
 
+    /**
+     * 创建三个并行的任务.
+     *
+     * @param name     任务名
+     * @param futureT1 任务1
+     * @param futureT2 任务2
+     * @param futureT3 任务3
+     * @param <T1>
+     * @param <T2>
+     * @param <T3>
+     * @return task
+     */
+    public static <T1, T2, T3> Tuple3Task<T1, T2, T3> par(String name, Future<T1> futureT1, Future<T2> futureT2, Future<T3> futureT3) {
+        return new Tuple3TaskImpl<>(name, futureT1, futureT2, futureT3);
+    }
+
+    /**
+     * 创建四个并行的任务.
+     *
+     * @param futureT1 任务1
+     * @param futureT2 任务2
+     * @param futureT3 任务3
+     * @param futureT4 任务4
+     * @param <T1>
+     * @param <T2>
+     * @param <T3>
+     * @param <T4>
+     * @return task
+     */
     public static <T1, T2, T3, T4> Tuple4Task<T1, T2, T3, T4> par(Future<T1> futureT1, Future<T2> futureT2, Future<T3> futureT3, Future<T4> futureT4) {
         return new Tuple4TaskImpl<>(futureT1, futureT2, futureT3, futureT4);
     }
 
+    /**
+     * 创建四个并行的任务.
+     *
+     * @param name     任务名
+     * @param futureT1 任务1
+     * @param futureT2 任务2
+     * @param futureT3 任务3
+     * @param futureT4 任务4
+     * @param <T1>
+     * @param <T2>
+     * @param <T3>
+     * @param <T4>
+     * @return task
+     */
+    public static <T1, T2, T3, T4> Tuple4Task<T1, T2, T3, T4> par(String name, Future<T1> futureT1, Future<T2> futureT2, Future<T3> futureT3, Future<T4> futureT4) {
+        return new Tuple4TaskImpl<>(name, futureT1, futureT2, futureT3, futureT4);
+    }
+
+    /**
+     * 创建五个并行的任务.
+     *
+     * @param futureT1 任务1
+     * @param futureT2 任务2
+     * @param futureT3 任务3
+     * @param futureT4 任务4
+     * @param futureT5 任务5
+     * @param <T1>
+     * @param <T2>
+     * @param <T3>
+     * @param <T4>
+     * @param <T5>
+     * @return task
+     */
     public static <T1, T2, T3, T4, T5> Tuple5Task<T1, T2, T3, T4, T5> par(Future<T1> futureT1, Future<T2> futureT2, Future<T3> futureT3, Future<T4> futureT4, Future<T5> futureT5) {
         return new Tuple5TaskImpl<>(futureT1, futureT2, futureT3, futureT4, futureT5);
     }
 
+    /**
+     * 创建五个并行的任务.
+     *
+     * @param name     任务名
+     * @param futureT1 任务1
+     * @param futureT2 任务2
+     * @param futureT3 任务3
+     * @param futureT4 任务4
+     * @param futureT5 任务5
+     * @param <T1>
+     * @param <T2>
+     * @param <T3>
+     * @param <T4>
+     * @param <T5>
+     * @return task
+     */
+    public static <T1, T2, T3, T4, T5> Tuple5Task<T1, T2, T3, T4, T5> par(String name, Future<T1> futureT1, Future<T2> futureT2, Future<T3> futureT3, Future<T4> futureT4, Future<T5> futureT5) {
+        return new Tuple5TaskImpl<>(name, futureT1, futureT2, futureT3, futureT4, futureT5);
+    }
+
+    /**
+     * 创建六个并行的任务.
+     *
+     * @param futureT1 任务1
+     * @param futureT2 任务2
+     * @param futureT3 任务3
+     * @param futureT4 任务4
+     * @param futureT5 任务5
+     * @param futureT6 任务6
+     * @param <T1>
+     * @param <T2>
+     * @param <T3>
+     * @param <T4>
+     * @param <T5>
+     * @param <T6>
+     * @return task
+     */
     public static <T1, T2, T3, T4, T5, T6> Tuple6Task<T1, T2, T3, T4, T5, T6> par(Future<T1> futureT1, Future<T2> futureT2, Future<T3> futureT3, Future<T4> futureT4, Future<T5> futureT5, Future<T6> futureT6) {
         return new Tuple6TaskImpl<>(futureT1, futureT2, futureT3, futureT4, futureT5, futureT6);
     }
 
+    /**
+     * 创建六个并行的任务.
+     *
+     * @param name     任务名
+     * @param futureT1 任务1
+     * @param futureT2 任务2
+     * @param futureT3 任务3
+     * @param futureT4 任务4
+     * @param futureT5 任务5
+     * @param futureT6 任务6
+     * @param <T1>
+     * @param <T2>
+     * @param <T3>
+     * @param <T4>
+     * @param <T5>
+     * @param <T6>
+     * @return task
+     */
+    public static <T1, T2, T3, T4, T5, T6> Tuple6Task<T1, T2, T3, T4, T5, T6> par(String name, Future<T1> futureT1, Future<T2> futureT2, Future<T3> futureT3, Future<T4> futureT4, Future<T5> futureT5, Future<T6> futureT6) {
+        return new Tuple6TaskImpl<>(name, futureT1, futureT2, futureT3, futureT4, futureT5, futureT6);
+    }
+
+    /**
+     * 创建多个并行任务.
+     *
+     * @param futures 任务列表
+     * @param <T>
+     * @return task
+     */
     public static <T> Task<List<T>> par(List<Future<T>> futures) {
+        return new ParTaskImpl<>(futures);
+    }
+
+
+    /**
+     * 创建多个并行任务.
+     *
+     * @param name    任务名
+     * @param futures 任务列表
+     * @param <T>
+     * @return task
+     */
+    public static <T> Task<List<T>> par(String name, List<Future<T>> futures) {
         return new ParTaskImpl<>(futures);
     }
 
