@@ -240,6 +240,22 @@ public class BaseTaskTest {
         ;
     }
 
+  @Test
+  public void testFlatMapTask(TestContext context) {
+    Async async = context.async();
+    Future<String> future = Future.future();
+    future.complete("Hello World");
+
+    Task.create(future)
+            .map(s -> s.length())
+            .flatMapTask(new TaskFunction(vertx))
+            .andThen(length -> {
+              System.out.println(length);
+              context.assertEquals("Hello World".length() * 2, length);
+              async.complete();
+            }).onFailure(throwable -> throwable.printStackTrace());
+  }
+
     @Test
     public void testRecover(TestContext context) {
         AtomicInteger seq = new AtomicInteger();

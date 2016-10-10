@@ -496,4 +496,42 @@ public interface Task<T> {
         });
     }
 
+  /**
+   * 任务完成之后，让结果传递给另外一个任务执行，function用来使用结果创建一个新的任务.
+   *
+   * @param function function类，将结果转换为一个新的task
+   * @param <R>      转换后的类型
+   * @return task
+   */
+  default <R> Task<R> flatMapTask(Function<T, Task<R>> function) {
+    return flatMapTask("flatMapTask: " + function.getClass().getName(), function);
+  }
+
+  /**
+   * 任务完成之后，让结果传递给另外一个任务执行，function用来使用结果创建一个新的任务.
+   *
+   * @param desc     任务描述
+   * @param function function类，将结果转换为一个新的task
+   * @param <R>      转换后的类型
+   * @return task
+   */
+  default <R> Task<R> flatMapTask(String desc, Function<T, Task<R>> function) {
+    return new FusionTask<>(desc, this, (prev, next) -> {
+      prev.setHandler(ar -> {
+        Throwable throwable = ar.cause();
+        if (ar.succeeded()) {
+          try {
+            Task<R> rFuture = function.apply(ar.result());
+            rFuture.setHandler(next.completer());
+          } catch (Exception e) {
+            throwable = e;
+          }
+        }
+        if (throwable != null) {
+          next.fail(throwable);
+        }
+      });
+    });
+  }
+
 }
