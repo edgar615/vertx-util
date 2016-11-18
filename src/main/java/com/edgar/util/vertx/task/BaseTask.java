@@ -45,7 +45,7 @@ class BaseTask<T> implements Task<T>, AsyncResult<T> {
         if (future instanceof TraceFuture) {
             this.future = future;
         } else {
-            this.future = TraceFuture.create(future);
+            this.future = TraceFuture.create(name, future);
         }
         this.trace = Trace.create(name);
         this.traceList.add(trace);

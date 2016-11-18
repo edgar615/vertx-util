@@ -12,103 +12,116 @@ import org.slf4j.LoggerFactory;
  * @author Edgar  Date 2016/5/6
  */
 class TraceFutureImpl<T> implements TraceFuture<T> {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TraceFuture.class);
-    private final Future<T> delegateFuture;
-    private final long startMills = System.currentTimeMillis();
-    private boolean handlerSeted = false;
-    private long endMills = 0;
+  private static final Logger LOGGER = LoggerFactory.getLogger(TraceFuture.class);
 
-    TraceFutureImpl() {
-        this.delegateFuture = Future.future();
-    }
+  private final Future<T> delegateFuture;
 
-    TraceFutureImpl(Future<T> delegateFuture) {
-        this.delegateFuture = delegateFuture;
-    }
+  private final long startMills = System.currentTimeMillis();
 
-    @Override
-    public long startMills() {
-        return startMills;
-    }
+  private final String name;
 
-    @Override
-    public long endMills() {
-        return endMills;
-    }
+  private boolean handlerSeted = false;
 
-    public long elapsed() {
-        return endMills - startMills;
-    }
+  private long endMills = 0;
 
-    @Override
-    public boolean isComplete() {
-        return delegateFuture.isComplete();
-    }
+  TraceFutureImpl(String name) {
+    this.delegateFuture = Future.future();
+    this.name = name;
+  }
 
-    @Override
-    public Future<T> setHandler(Handler<AsyncResult<T>> handler) {
-        if (handlerSeted == true) {
-            //打印警告
-            LOGGER.warn("task handler has been setted");
-        }
-        handlerSeted = true;
-        return delegateFuture.setHandler(handler);
-    }
+  TraceFutureImpl(String name, Future<T> delegateFuture) {
+    this.delegateFuture = delegateFuture;
+    this.name = name;
+  }
 
-    @Override
-    public void complete(T result) {
-        endTrace();
-        delegateFuture.complete(result);
-    }
+  @Override
+  public String name() {
+    return name;
+  }
 
-    @Override
-    public void complete() {
-        endTrace();
-        delegateFuture.complete();
-    }
+  @Override
+  public long startMills() {
+    return startMills;
+  }
 
-    @Override
-    public void fail(Throwable throwable) {
-        endTrace();
-        delegateFuture.fail(throwable);
-    }
+  @Override
+  public long endMills() {
+    return endMills;
+  }
 
-    @Override
-    public void fail(String failureMessage) {
-        endTrace();
-        delegateFuture.fail(failureMessage);
-    }
+  public long elapsed() {
+    return endMills - startMills;
+  }
 
-    @Override
-    public T result() {
-        return delegateFuture.result();
-    }
+  @Override
+  public boolean isComplete() {
+    return delegateFuture.isComplete();
+  }
 
-    @Override
-    public Throwable cause() {
-        return delegateFuture.cause();
+  @Override
+  public Future<T> setHandler(Handler<AsyncResult<T>> handler) {
+    if (handlerSeted == true) {
+      //打印警告
+      LOGGER.warn("task handler has been setted");
     }
+    handlerSeted = true;
+    return delegateFuture.setHandler(handler);
+  }
 
-    @Override
-    public boolean succeeded() {
-        return delegateFuture.succeeded();
-    }
+  @Override
+  public void complete(T result) {
+    endTrace();
+    delegateFuture.complete(result);
+  }
 
-    @Override
-    public boolean failed() {
-        return delegateFuture.failed();
-    }
+  @Override
+  public void complete() {
+    endTrace();
+    delegateFuture.complete();
+  }
 
-    @Override
-    public void handle(AsyncResult<T> ar) {
-        if (ar.succeeded()) {
-            complete(ar.result());
-        } else {
-            fail(ar.cause());
-        }
-    }
+  @Override
+  public void fail(Throwable throwable) {
+    endTrace();
+    delegateFuture.fail(throwable);
+  }
 
-    private void endTrace() {
-        endMills = System.currentTimeMillis();
+  @Override
+  public void fail(String failureMessage) {
+    endTrace();
+    delegateFuture.fail(failureMessage);
+  }
+
+  @Override
+  public T result() {
+    return delegateFuture.result();
+  }
+
+  @Override
+  public Throwable cause() {
+    return delegateFuture.cause();
+  }
+
+  @Override
+  public boolean succeeded() {
+    return delegateFuture.succeeded();
+  }
+
+  @Override
+  public boolean failed() {
+    return delegateFuture.failed();
+  }
+
+  @Override
+  public void handle(AsyncResult<T> ar) {
+    if (ar.succeeded()) {
+      complete(ar.result());
+    } else {
+      fail(ar.cause());
     }
+  }
+
+  private void endTrace() {
+    endMills = System.currentTimeMillis();
+  }
 }

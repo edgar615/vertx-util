@@ -11,17 +11,19 @@ import io.vertx.core.Handler;
  */
 public interface TraceFuture<T> extends Future<T>, Handler<AsyncResult<T>> {
 
+  String name();
+
   long startMills();
 
   long endMills();
 
   long elapsed();
 
-  static <T> TraceFuture<T> create() {
-    return new TraceFutureImpl<>();
+  static <T> TraceFuture<T> create(String name) {
+    return new TraceFutureImpl<>(name);
   }
 
-  static <T> TraceFuture<T> create(Future<T> future) {
-    return new TraceFutureImpl<>(future);
+  static <T> TraceFuture<T> create(String name, Future<T> future) {
+    return new TraceFutureImpl<>(name, future);
   }
 }

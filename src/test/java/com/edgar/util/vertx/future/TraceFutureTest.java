@@ -16,12 +16,12 @@ public class TraceFutureTest {
 
     @Test
     public void testTrace() throws InterruptedException {
-        TraceFuture<Integer> traceFuture = TraceFuture.create();
+        TraceFuture<Integer> traceFuture = TraceFuture.create("test");
         TimeUnit.SECONDS.sleep(1);
         traceFuture.complete(1);
         System.out.println("elapsed" + traceFuture.elapsed());
 
-        traceFuture = TraceFuture.create();
+        traceFuture = TraceFuture.create("test");
         TimeUnit.SECONDS.sleep(1);
         traceFuture.fail("1");
         System.out.println("elapsed" + traceFuture.elapsed());
@@ -29,7 +29,7 @@ public class TraceFutureTest {
 
     @Test
     public void setHandler() throws InterruptedException {
-        TraceFuture<Integer> traceFuture = TraceFuture.create();
+        TraceFuture<Integer> traceFuture = TraceFuture.create("test");
         traceFuture.setHandler(ar -> {});
         traceFuture.setHandler(ar -> {});
     }
