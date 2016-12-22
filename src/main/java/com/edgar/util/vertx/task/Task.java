@@ -3,6 +3,8 @@ package com.edgar.util.vertx.task;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -16,6 +18,8 @@ import java.util.function.Function;
  * @author Edgar  Date 2016/5/10
  */
 public interface Task<T> {
+
+  Logger LOGGER = LoggerFactory.getLogger(Task.class);
 
   /**
    * 返回任务的执行结果
@@ -364,8 +368,10 @@ public interface Task<T> {
         if (throwable != null) {
           try {
             consumer.accept(throwable);
+            LOGGER.debug("task->{} consumer throwable succeeded", prev.name());
           } catch (Exception e) {
             throwable = e;
+            LOGGER.debug("task->{} consumer throwable failed, error->{}", prev.name(), throwable.getMessage());
           }
           next.fail(throwable);
         }
@@ -402,8 +408,10 @@ public interface Task<T> {
         if (throwable != null) {
           try {
             next.complete(function.apply(throwable));
+            LOGGER.debug("task->{} recover from throwable succeeded", prev.name());
           } catch (Exception e) {
             throwable = e;
+            LOGGER.debug("task->{} recover from throwable failed, error->{}", prev.name(), throwable.getMessage());
             next.fail(throwable);
           }
         }
@@ -447,8 +455,10 @@ public interface Task<T> {
         if (ar.succeeded()) {
           try {
             next.complete(function.apply(ar.result()));
+            LOGGER.debug("task->{} map to task->{} succeeded", prev.name(), next.name());
           } catch (Exception e) {
             throwable = e;
+            LOGGER.debug("task->{} map to task->{} failed, error->{}", prev.name(), next.name(), throwable.getMessage());
           }
         }
         if (throwable != null) {
@@ -509,8 +519,10 @@ public interface Task<T> {
           try {
             Future<R> rFuture = function.apply(ar.result());
             rFuture.setHandler(next.completer());
+            LOGGER.debug("task->{} flatMap to task->{} succeeded", prev.name(), next.name());
           } catch (Exception e) {
             throwable = e;
+            LOGGER.debug("task->{} flatMap to task->{} failed, error->{}", prev.name(), next.name(), throwable.getMessage());
           }
         }
         if (throwable != null) {
