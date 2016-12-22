@@ -241,92 +241,6 @@ public class BaseTaskTest {
   }
 
   @Test
-  public void testFlatMapTask(TestContext context) {
-    Async async = context.async();
-    Future<String> future = Future.future();
-    future.complete("Hello World");
-
-    Task.create(future)
-            .map(s -> s.length())
-            .flatMapTask(new TaskFunction(vertx))
-            .andThen(length -> {
-              System.out.println(length);
-              context.assertEquals("Hello World".length() * 2, length);
-              async.complete();
-            }).onFailure(throwable -> throwable.printStackTrace());
-  }
-
-  @Test
-  public void testFlatMapTask2(TestContext context) {
-    Async async = context.async();
-    Future<String> future = Future.future();
-    future.complete("Hello World");
-    Task.create(future)
-            .map(s -> s.length())
-            .flatMapTask(new Function<Integer, Task<Integer>>() {
-              @Override
-              public Task<Integer> apply(Integer integer) {
-                Future<Integer> rFuture = Future.future();
-                rFuture.complete(integer * 2);
-                return Task.create(rFuture);
-              }
-            })
-            .andThen(length -> {
-              context.assertEquals("Hello World".length() * 2, length);
-              async.complete();
-            });
-  }
-
-  @Test
-  public void testFlatMapTask3(TestContext context) {
-    Async async = context.async();
-    Future<String> future = Future.future();
-    future.complete("Hello World");
-    Task.create(future)
-            .map(s -> Integer.parseInt(s))
-            .flatMapTask(new Function<Integer, Task<Integer>>() {
-              @Override
-              public Task<Integer> apply(Integer integer) {
-                Future<Integer> rFuture = Future.future();
-                rFuture.complete(integer * 2);
-                return Task.create(rFuture);
-              }
-            })
-            .andThen(length -> {
-              context.fail();
-            }).onFailure(throwable -> {
-//            throwable.printStackTrace();
-      context.assertNotNull(throwable);
-      async.complete();
-    });
-  }
-
-  @Test
-  public void testFlatMapTask4(TestContext context) {
-    Async async = context.async();
-    Future<String> future = Future.future();
-    future.complete("Hello World");
-    Task.create(future)
-            .map(s -> s.length())
-            .flatMapTask(new Function<Integer, Task<Integer>>() {
-              @Override
-              public Task<Integer> apply(Integer integer) {
-                Future<Integer> rFuture = Future.future();
-                rFuture.complete(integer / 0);
-                return Task.create(rFuture);
-              }
-            })
-            .andThen(length -> {
-              context.fail();
-            }).onFailure(throwable -> {
-//            throwable.printStackTrace();
-      context.assertNotNull(throwable);
-      async.complete();
-    })
-    ;
-  }
-
-  @Test
   public void testRecover(TestContext context) {
     AtomicInteger seq = new AtomicInteger();
     Async async = context.async();
@@ -383,6 +297,45 @@ public class BaseTaskTest {
             .onFailure(throwable -> {
               context.fail();
             }).onTrace(trace -> System.out.println(trace));
+  }
+
+  @Test
+  public void testToFuture(TestContext context) {
+    Async async = context.async();
+    Future<String> future = Future.future();
+    future.complete("Hello World");
+    Task.create(future)
+            .map(s -> s.toUpperCase())
+            .andThen(s -> context.assertEquals("HELLO WORLD", s))
+            .map(s -> s.length())
+            .andThen(length -> {
+              context.assertEquals("Hello World".length(), length);
+            }).toFutrue().setHandler(ar -> {
+      if (ar.succeeded()) {
+        context.assertEquals("Hello World".length(), ar.result());
+        async.complete();
+      } else {
+        context.fail();
+      }
+    });
+  }
+
+  @Test
+  public void testToFuture2(TestContext context) {
+    Async async = context.async();
+    Future<String> future = Future.future();
+    future.complete("Hello World");
+    Task.create(future)
+            .map(s -> Integer.parseInt(s))
+            .andThen(i -> System.out.println(i))
+            .toFutrue().setHandler(ar -> {
+      if (ar.succeeded()) {
+        context.fail();
+      } else {
+        ar.cause().printStackTrace();
+        async.complete();
+      }
+    });
   }
 
 }
