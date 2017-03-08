@@ -16,10 +16,10 @@ class Tuple4TaskImpl<T1, T2, T3, T4> extends BaseTask<Tuple4<T1, T2, T3, T4>> im
         CompositeFuture compositeFuture = CompositeFuture.all(futureT1, futureT2, futureT3, futureT4);
         compositeFuture.setHandler(ar -> {
             if (ar.succeeded()) {
-                T1 t1 = ar.result().result(0);
-                T2 t2 = ar.result().result(1);
-                T3 t3 = ar.result().result(2);
-                T4 t4 = ar.result().result(3);
+                T1 t1 = ar.result().resultAt(0);
+                T2 t2 = ar.result().resultAt(1);
+                T3 t3 = ar.result().resultAt(2);
+                T4 t4 = ar.result().resultAt(3);
                 complete(Tuple4.create(t1, t2, t3, t4));
             } else {
                 fail(ar.cause());

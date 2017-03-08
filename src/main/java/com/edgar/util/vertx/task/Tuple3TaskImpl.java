@@ -16,9 +16,9 @@ class Tuple3TaskImpl<T1, T2, T3> extends BaseTask<Tuple3<T1, T2, T3>> implements
         CompositeFuture compositeFuture = CompositeFuture.all(futureT1, futureT2, futureT3);
         compositeFuture.setHandler(ar -> {
             if (ar.succeeded()) {
-                T1 t1 = ar.result().result(0);
-                T2 t2 = ar.result().result(1);
-                T3 t3 = ar.result().result(2);
+                T1 t1 = ar.result().resultAt(0);
+                T2 t2 = ar.result().resultAt(1);
+                T3 t3 = ar.result().resultAt(2);
                 complete(Tuple3.create(t1, t2, t3));
             } else {
                 fail(ar.cause());

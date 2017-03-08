@@ -25,7 +25,7 @@ class ParTaskImpl<T> extends BaseTask<List<T>> {
             if (ar.succeeded()) {
                 List<T> results = new ArrayList<>(size);
                 for (int i = 0; i < size; i++) {
-                    results.add((T) ar.result().result(i));
+                    results.add((T) ar.result().resultAt(i));
                 }
                 complete(results);
             } else {

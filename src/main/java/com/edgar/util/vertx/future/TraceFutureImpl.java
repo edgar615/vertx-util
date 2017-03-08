@@ -93,6 +93,26 @@ class TraceFutureImpl<T> implements TraceFuture<T> {
   }
 
   @Override
+  public boolean tryComplete(T t) {
+    return delegateFuture.tryComplete(t);
+  }
+
+  @Override
+  public boolean tryComplete() {
+    return delegateFuture.tryComplete();
+  }
+
+  @Override
+  public boolean tryFail(Throwable throwable) {
+    return delegateFuture.tryFail(throwable);
+  }
+
+  @Override
+  public boolean tryFail(String s) {
+    return delegateFuture.tryFail(s);
+  }
+
+  @Override
   public T result() {
     return delegateFuture.result();
   }

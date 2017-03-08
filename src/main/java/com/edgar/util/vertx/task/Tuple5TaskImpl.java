@@ -16,11 +16,11 @@ class Tuple5TaskImpl<T1, T2, T3, T4, T5> extends BaseTask<Tuple5<T1, T2, T3, T4,
         CompositeFuture compositeFuture = CompositeFuture.all(futureT1, futureT2, futureT3, futureT4, futureT5);
         compositeFuture.setHandler(ar -> {
             if (ar.succeeded()) {
-                T1 t1 = ar.result().result(0);
-                T2 t2 = ar.result().result(1);
-                T3 t3 = ar.result().result(2);
-                T4 t4 = ar.result().result(3);
-                T5 t5 = ar.result().result(4);
+                T1 t1 = ar.result().resultAt(0);
+                T2 t2 = ar.result().resultAt(1);
+                T3 t3 = ar.result().resultAt(2);
+                T4 t4 = ar.result().resultAt(3);
+                T5 t5 = ar.result().resultAt(4);
                 complete(Tuple5.create(t1, t2, t3, t4, t5));
             } else {
                 fail(ar.cause());

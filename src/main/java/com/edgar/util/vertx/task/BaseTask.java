@@ -17,7 +17,7 @@ import java.util.function.Consumer;
  *
  * @author Edgar  Date 2016/5/9
  */
-class BaseTask<T> implements Task<T>, AsyncResult<T> {
+class BaseTask<T> implements Task<T> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BaseTask.class);
 
@@ -77,17 +77,14 @@ class BaseTask<T> implements Task<T>, AsyncResult<T> {
         return future.result();
     }
 
-    @Override
     public Throwable cause() {
         return future.cause();
     }
 
-    @Override
     public boolean succeeded() {
         return future.succeeded();
     }
 
-    @Override
     public boolean failed() {
         return future.failed();
     }

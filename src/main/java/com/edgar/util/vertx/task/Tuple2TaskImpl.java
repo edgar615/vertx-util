@@ -16,8 +16,8 @@ class Tuple2TaskImpl<T1, T2> extends BaseTask<Tuple2<T1, T2>> implements Tuple2T
         CompositeFuture compositeFuture = CompositeFuture.all(futureT1, futureT2);
         compositeFuture.setHandler(ar -> {
             if (ar.succeeded()) {
-                T1 t1 = ar.result().result(0);
-                T2 t2 = ar.result().result(1);
+                T1 t1 = ar.result().resultAt(0);
+                T2 t2 = ar.result().resultAt(1);
                 complete(Tuple2.create(t1, t2));
             } else {
                 fail(ar.cause());
