@@ -347,7 +347,7 @@ public interface Task<T> {
    * @return task
    */
   public static <T> Task<List<T>> par(String name, List<Future<T>> futures) {
-    return new ParTaskImpl<>(futures);
+    return new ParTaskImpl<>(name,futures);
   }
 
   /**
