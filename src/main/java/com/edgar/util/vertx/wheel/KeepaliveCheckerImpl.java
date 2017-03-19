@@ -19,7 +19,7 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
   private final Vertx vertx;
 
   /**
-   *多长时间的心跳认为掉线
+   * 多长时间的心跳认为掉线
    */
   private final int interval;
 
@@ -69,6 +69,7 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
       wheelQueue.put(i, new CopyOnWriteArraySet<>());
     }
     vertx.setPeriodic(period, l -> {
+      forward();
       Set<Integer> oldList = disconn();
       if (oldList.size() > 0) {
         vertx.eventBus().publish(disConnAddress,
@@ -79,20 +80,32 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
   }
 
   private synchronized Set<Integer> disconn() {
-    int removedSolt = cursor.incrementAndGet() - 1;
+    int deadSolt = deadSolt();
 //      int removedSolt = cursor.incrementAndGet() % interval - 1;
-    if (removedSolt == interval) {
-      cursor.set(0);
-    }
-    if (removedSolt < 0) {
-      removedSolt = interval;
-    }
-    Set<Integer> oldList = wheelQueue.put(removedSolt, new CopyOnWriteArraySet<>());
+    checkCycle();
+    Set<Integer> oldList = wheelQueue.put(deadSolt, new CopyOnWriteArraySet<>());
     oldList.forEach(i -> location.remove(i));
     if (!oldList.isEmpty()) {
       seq.incrementAndGet();
     }
     return oldList;
+  }
+
+  private int deadSolt() {
+    if (cursor.get() == 0) {
+      return interval;
+    }
+    return cursor.get() - 1;
+  }
+
+  private void forward() {
+    cursor.incrementAndGet();
+  }
+
+  private void checkCycle() {
+    if (cursor.get() == interval + 1) {
+      cursor.set(0);
+    }
   }
 
   @Override

@@ -9,11 +9,6 @@ public class Task {
 
   private int cycleNum;
 
-  /**
-   * 重复时间，周一到周日
-   */
-  private int repeat;
-
   public int getId() {
     return id;
   }

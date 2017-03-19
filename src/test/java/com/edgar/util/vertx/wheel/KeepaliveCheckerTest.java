@@ -66,4 +66,36 @@ public class KeepaliveCheckerTest {
     });
   }
 
+
+  @Test
+  public void testKeepalive2(TestContext testContext) throws InterruptedException {
+    KeepaliveOptions options = new KeepaliveOptions()
+        .setInterval(5);
+
+    vertx.eventBus().<JsonObject>consumer(options.getDisConnAddress(), removed -> {
+      System.out.println(System.currentTimeMillis() + ",removed:" + removed.body());
+    });
+    vertx.eventBus().<JsonObject>consumer(options.getFirstConnAddress(), added -> {
+      System.out.println(System.currentTimeMillis() + ",added:" + added.body());
+    });
+    KeepaliveCheckerImpl checker = new KeepaliveCheckerImpl(vertx, options);
+
+    Async async = testContext.async();
+
+
+    for (int i = 0; i < 10; i ++) {
+      checker.heartbeat(i);
+    }
+
+    vertx.setTimer(3000l, l -> {
+      for (int i = 4; i < 8; i ++) {
+        checker.heartbeat(i);
+      }
+    });
+
+    vertx.setTimer(9000l,l -> {
+      async.complete();
+    });
+  }
+
 }
