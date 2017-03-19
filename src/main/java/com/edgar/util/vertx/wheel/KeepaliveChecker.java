@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * Created by edgar on 17-3-16.
  */
-public class TimerWheel {
+public class KeepaliveChecker {
 
   private final Vertx vertx;
 
@@ -53,6 +53,8 @@ public class TimerWheel {
 
   private final int interval;
 
+  private final int period;
+
   private final AtomicInteger cursor = new AtomicInteger(0);
 
   private final Map<Integer, Integer> location = new ConcurrentHashMap<>();
@@ -62,45 +64,64 @@ public class TimerWheel {
    */
   private final Map<Integer, Set<Integer>> wheelQueue = new ConcurrentHashMap<>();
 
-  public TimerWheel(Vertx vertx, int interval) {
+  private final String disConnAddress;
+  private final String firstConnAddress;
+
+  public KeepaliveChecker(Vertx vertx, KeepaliveOptions options) {
     this.vertx = vertx;
-    this.interval = interval;
+    this.interval = options.getInterval();
+    this.disConnAddress = options.getDisConnAddress();
+    this.firstConnAddress = options.getFirstConnAddress();
+    this.period = options.getCheckPeriod();
+
     for (int i = 0; i <= interval; i++) {
       wheelQueue.put(i, new CopyOnWriteArraySet<>());
     }
-    vertx.setPeriodic(1000, l -> {
-      int removedSolt = cursor.incrementAndGet() - 1;
-//      int removedSolt = cursor.incrementAndGet() % interval - 1;
-      if (removedSolt == interval) {
-        cursor.set(0);
-      }
-      if (removedSolt < 0) {
-        removedSolt = interval;
-      }
-      Set<Integer> oldList = wheelQueue.put(removedSolt, new CopyOnWriteArraySet<>());
-      System.out.println(removedSolt + " : " + wheelQueue);
-      oldList.forEach(i -> location.remove(i));
+    vertx.setPeriodic(period, l -> {
+      Set<Integer> oldList = disconn();
       if (oldList.size() > 0) {
-        vertx.eventBus().publish("remove", new JsonObject().put("ids", new JsonArray(new ArrayList(oldList)))
-            .put("solt", removedSolt));
+        vertx.eventBus().publish(disConnAddress, new JsonObject().put("ids", new JsonArray(new ArrayList(oldList))));
       }
     });
   }
 
-  public void registerEvent(Integer eventId) {
-    if (location.containsKey(eventId)) {
-      int currentSolt = location.get(eventId);
+  private synchronized Set<Integer> disconn() {
+    int removedSolt = cursor.incrementAndGet() - 1;
+//      int removedSolt = cursor.incrementAndGet() % interval - 1;
+    if (removedSolt == interval) {
+      cursor.set(0);
+    }
+    if (removedSolt < 0) {
+      removedSolt = interval;
+    }
+    Set<Integer> oldList = wheelQueue.put(removedSolt, new CopyOnWriteArraySet<>());
+    oldList.forEach(i -> location.remove(i));
+    return oldList;
+  }
+
+  public synchronized void heartbeat(Integer id) {
+    boolean firstCheck = registerHeartbeat(id);
+    if (firstCheck) {
+      vertx.eventBus().publish(firstConnAddress, new JsonObject().put("id", id));
+    }
+    ;
+  }
+
+  private synchronized boolean registerHeartbeat(Integer id) {
+    boolean firstCheck = true;
+    if (location.containsKey(id)) {
+      int currentSolt = location.get(id);
       Set<Integer> list = wheelQueue.get(currentSolt);
-      list.remove(eventId);
+      list.remove(id);
+      firstCheck = false;
     }
     int solt = cursor.get() - 1;
     if (solt < 0) {
       solt = interval;
     }
     Set<Integer> list = wheelQueue.get(solt);
-    list.add(eventId);
-    location.put(eventId, solt);
-    vertx.eventBus().publish("add", new JsonObject().put("id", eventId).put("solt", solt));
-    ;
+    list.add(id);
+    location.put(id, solt);
+    return firstCheck;
   }
 }

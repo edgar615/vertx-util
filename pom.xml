@@ -15,7 +15,7 @@
         <project.build.sourceEncoding>${java.encoding}</project.build.sourceEncoding>
 
         <junit.version>4.12</junit.version>
-        <vertx.version>3.4.0</vertx.version>
+        <vertx.version>3.4.1</vertx.version>
         <slf4j.version>1.7.24</slf4j.version>
 
     </properties>
