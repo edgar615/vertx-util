@@ -1,15 +1,6 @@
 package com.edgar.util.vertx.wheel;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 假设对事件做30秒的定时检测,创建一个环形队列从0到30表示30秒,每隔一秒在队列中移动一格,并使用一个指针记录移动对位置.
@@ -42,86 +33,18 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * Created by edgar on 17-3-16.
  */
-public class KeepaliveChecker {
-
-  private final Vertx vertx;
+public interface KeepaliveChecker {
 
   /**
-   * 环形队列
+   * 创建一个KeepaliveChecker
+   *
+   * @param vertx
+   * @param options
+   * @return KeepaliveChecker
    */
-//  private final List<Integer> wheelQueue = new ArrayList<>();
-
-  private final int interval;
-
-  private final int period;
-
-  private final AtomicInteger cursor = new AtomicInteger(0);
-
-  private final Map<Integer, Integer> location = new ConcurrentHashMap<>();
-
-  /**
-   * 环形队列
-   */
-  private final Map<Integer, Set<Integer>> wheelQueue = new ConcurrentHashMap<>();
-
-  private final String disConnAddress;
-  private final String firstConnAddress;
-
-  public KeepaliveChecker(Vertx vertx, KeepaliveOptions options) {
-    this.vertx = vertx;
-    this.interval = options.getInterval();
-    this.disConnAddress = options.getDisConnAddress();
-    this.firstConnAddress = options.getFirstConnAddress();
-    this.period = options.getCheckPeriod();
-
-    for (int i = 0; i <= interval; i++) {
-      wheelQueue.put(i, new CopyOnWriteArraySet<>());
-    }
-    vertx.setPeriodic(period, l -> {
-      Set<Integer> oldList = disconn();
-      if (oldList.size() > 0) {
-        vertx.eventBus().publish(disConnAddress, new JsonObject().put("ids", new JsonArray(new ArrayList(oldList))));
-      }
-    });
+  static KeepaliveChecker create(Vertx vertx, KeepaliveOptions options) {
+    return new KeepaliveCheckerImpl(vertx, options);
   }
 
-  private synchronized Set<Integer> disconn() {
-    int removedSolt = cursor.incrementAndGet() - 1;
-//      int removedSolt = cursor.incrementAndGet() % interval - 1;
-    if (removedSolt == interval) {
-      cursor.set(0);
-    }
-    if (removedSolt < 0) {
-      removedSolt = interval;
-    }
-    Set<Integer> oldList = wheelQueue.put(removedSolt, new CopyOnWriteArraySet<>());
-    oldList.forEach(i -> location.remove(i));
-    return oldList;
-  }
-
-  public synchronized void heartbeat(Integer id) {
-    boolean firstCheck = registerHeartbeat(id);
-    if (firstCheck) {
-      vertx.eventBus().publish(firstConnAddress, new JsonObject().put("id", id));
-    }
-    ;
-  }
-
-  private synchronized boolean registerHeartbeat(Integer id) {
-    boolean firstCheck = true;
-    if (location.containsKey(id)) {
-      int currentSolt = location.get(id);
-      Set<Integer> list = wheelQueue.get(currentSolt);
-      list.remove(id);
-      firstCheck = false;
-    }
-    int solt = cursor.get() - 1;
-    if (solt < 0) {
-      solt = interval;
-    }
-    Set<Integer> list = wheelQueue.get(solt);
-    list.add(id);
-    location.put(id, solt);
-    return firstCheck;
-  }
+  void heartbeat(Integer id);
 }

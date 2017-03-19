@@ -10,9 +10,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by edgar on 17-3-17.
@@ -41,7 +39,7 @@ public class KeepaliveCheckerTest {
       System.out.println(System.currentTimeMillis() + ",added:" + added.body());
       online.add(added.body().getInteger("id"));
     });
-    KeepaliveChecker checker = new KeepaliveChecker(vertx, options);
+    KeepaliveCheckerImpl checker = new KeepaliveCheckerImpl(vertx, options);
 
     Async async = testContext.async();
 
