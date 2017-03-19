@@ -46,5 +46,17 @@ public interface KeepaliveChecker {
     return new KeepaliveCheckerImpl(vertx, options);
   }
 
+  /**
+   * 心跳
+   *
+   * @param id 设备id
+   */
   void heartbeat(Integer id);
+
+  /**
+   * 在线的数量
+   *
+   * @return
+   */
+  int counter();
 }

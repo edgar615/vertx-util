@@ -19,16 +19,23 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
   private final Vertx vertx;
 
   /**
-   * 环形队列
+   *多长时间的心跳认为掉线
    */
-//  private final List<Integer> wheelQueue = new ArrayList<>();
-
   private final int interval;
 
+  /**
+   * 每次检测对间隔时间
+   */
   private final int period;
 
+  /**
+   * 游标
+   */
   private final AtomicInteger cursor = new AtomicInteger(0);
 
+  /**
+   * 记录设备的位置
+   */
   private final Map<Integer, Integer> location = new ConcurrentHashMap<>();
 
   /**
@@ -36,9 +43,19 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
    */
   private final Map<Integer, Set<Integer>> wheelQueue = new ConcurrentHashMap<>();
 
+  /**
+   * 序列号
+   */
   private final AtomicInteger seq = new AtomicInteger(0);
 
+  /**
+   * 设备掉线的事件地址
+   */
   private final String disConnAddress;
+
+  /**
+   * 设备第一次上线对事件地址
+   */
   private final String firstConnAddress;
 
   KeepaliveCheckerImpl(Vertx vertx, KeepaliveOptions options) {
@@ -87,6 +104,11 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
               .put("seq", seq.get()));
     }
     ;
+  }
+
+  @Override
+  public int counter() {
+    return location.size();
   }
 
   private synchronized boolean registerHeartbeat(Integer id) {
