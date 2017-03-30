@@ -6,7 +6,7 @@
 
     <groupId>com.edgar</groupId>
     <artifactId>vertx-util</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3</version>
 
     <properties>
         <argLine>-Dfile.encoding=UTF-8</argLine>
