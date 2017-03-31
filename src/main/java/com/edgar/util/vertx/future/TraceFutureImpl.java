@@ -62,7 +62,7 @@ class TraceFutureImpl<T> implements TraceFuture<T> {
   public Future<T> setHandler(Handler<AsyncResult<T>> handler) {
     if (handlerSeted == true) {
       //打印警告
-      LOGGER.warn("task handler has been setted");
+      LOGGER.warn("task handler has been setted:{}", name);
     }
     handlerSeted = true;
     return delegateFuture.setHandler(handler);

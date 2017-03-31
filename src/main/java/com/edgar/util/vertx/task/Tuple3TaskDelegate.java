@@ -4,9 +4,6 @@ import com.edgar.util.vertx.function.Tuple3;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 
-import java.util.List;
-import java.util.function.Consumer;
-
 /**
  * Created by Edgar on 2016/7/29.
  *
@@ -42,11 +39,6 @@ class Tuple3TaskDelegate<T1, T2, T3> implements Tuple3Task<T1, T2, T3> {
     @Override
     public boolean isComplete() {
         return task.isComplete();
-    }
-
-    @Override
-    public Task<Tuple3<T1, T2, T3>> onTrace(Consumer<List<Trace>> traceHandler) {
-        return null;
     }
 
     @Override

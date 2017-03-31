@@ -277,7 +277,7 @@ public class BaseTaskTest {
             })
             .onFailure(throwable -> {
               context.fail();
-            }).onTrace(trace -> System.out.println(trace));
+            });
   }
 
   @Test
@@ -296,7 +296,7 @@ public class BaseTaskTest {
             })
             .onFailure(throwable -> {
               context.fail();
-            }).onTrace(trace -> System.out.println(trace));
+            });
   }
 
   @Test

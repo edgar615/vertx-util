@@ -70,14 +70,14 @@ public interface Task<T> {
    */
   Handler<AsyncResult<T>> completer();
 
-  /**
-   * 处理任务的日志.
-   * 日志会一直在task中传播，所以通常只需要在task链的最后一个task上处理即可.
-   *
-   * @param traceHandler 日志的处理对象
-   * @return task
-   */
-  Task<T> onTrace(Consumer<List<Trace>> traceHandler);
+//  /**
+//   * 处理任务的日志.
+//   * 日志会一直在task中传播，所以通常只需要在task链的最后一个task上处理即可.
+//   *
+//   * @param traceHandler 日志的处理对象
+//   * @return task
+//   */
+//  Task<T> onTrace(Consumer<List<Trace>> traceHandler);
 
   /**
    * 创建一个异步任务.
