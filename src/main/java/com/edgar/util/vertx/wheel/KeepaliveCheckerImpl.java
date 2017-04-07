@@ -19,12 +19,12 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
   private final Vertx vertx;
 
   /**
-   * 多长时间的心跳认为掉线
+   * 多少次检测之后的心跳认为掉线
    */
   private final int interval;
 
   /**
-   * 每次检测对间隔时间
+   * 每次检测的间隔时间
    */
   private final int period;
 
@@ -34,14 +34,14 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
   private final AtomicInteger cursor = new AtomicInteger(0);
 
   /**
-   * 记录设备的位置
+   * 记录心跳的在环形队列中的位置，每次收到心跳都需要更新心跳在环形队列中的位置，通过location可以很快定位到心跳在环形队列中的位置
    */
   private final Map<Integer, Integer> location = new ConcurrentHashMap<>();
 
   /**
    * 环形队列
    */
-  private final Map<Integer, Set<Integer>> wheelQueue = new ConcurrentHashMap<>();
+  private final Map<Integer, Set<Integer>> queue = new ConcurrentHashMap<>();
 
   /**
    * 序列号
@@ -66,15 +66,15 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     this.period = options.getCheckPeriod();
 
     for (int i = 0; i <= interval; i++) {
-      wheelQueue.put(i, new CopyOnWriteArraySet<>());
+      queue.put(i, new CopyOnWriteArraySet<>());
     }
     vertx.setPeriodic(period, l -> {
       forward();
       Set<Integer> oldList = disconn();
       if (oldList.size() > 0) {
         vertx.eventBus().publish(disConnAddress,
-            new JsonObject().put("ids", new JsonArray(new ArrayList(oldList)))
-                .put("seq", seq.get()));
+                                 new JsonObject().put("ids", new JsonArray(new ArrayList(oldList)))
+                                         .put("seq", seq.get()));
       }
     });
   }
@@ -83,12 +83,49 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     int deadSolt = deadSolt();
 //      int removedSolt = cursor.incrementAndGet() % interval - 1;
     checkCycle();
-    Set<Integer> oldList = wheelQueue.put(deadSolt, new CopyOnWriteArraySet<>());
+    Set<Integer> oldList = queue.put(deadSolt, new CopyOnWriteArraySet<>());
     oldList.forEach(i -> location.remove(i));
     if (!oldList.isEmpty()) {
       seq.incrementAndGet();
     }
     return oldList;
+  }
+
+  private synchronized boolean registerHeartbeat(Integer id) {
+    boolean firstCheck = true;
+    if (location.containsKey(id)) {
+      int currentSolt = location.get(id);
+      Set<Integer> list = queue.get(currentSolt);
+      list.remove(id);
+      firstCheck = false;
+    }
+    int solt = cursor.get() - 1;
+    if (solt < 0) {
+      solt = interval;
+    }
+    Set<Integer> list = queue.get(solt);
+    list.add(id);
+    location.put(id, solt);
+    if (firstCheck) {
+      seq.incrementAndGet();
+    }
+    return firstCheck;
+  }
+
+  @Override
+  public void heartbeat(Integer id) {
+    boolean firstCheck = registerHeartbeat(id);
+    if (firstCheck) {
+      vertx.eventBus().publish(firstConnAddress,
+                               new JsonObject().put("id", id)
+                                       .put("seq", seq.get()));
+    }
+    ;
+  }
+
+  @Override
+  public int counter() {
+    return location.size();
   }
 
   private int deadSolt() {
@@ -106,42 +143,5 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     if (cursor.get() == interval + 1) {
       cursor.set(0);
     }
-  }
-
-  @Override
-  public void heartbeat(Integer id) {
-    boolean firstCheck = registerHeartbeat(id);
-    if (firstCheck) {
-      vertx.eventBus().publish(firstConnAddress,
-          new JsonObject().put("id", id)
-              .put("seq", seq.get()));
-    }
-    ;
-  }
-
-  @Override
-  public int counter() {
-    return location.size();
-  }
-
-  private synchronized boolean registerHeartbeat(Integer id) {
-    boolean firstCheck = true;
-    if (location.containsKey(id)) {
-      int currentSolt = location.get(id);
-      Set<Integer> list = wheelQueue.get(currentSolt);
-      list.remove(id);
-      firstCheck = false;
-    }
-    int solt = cursor.get() - 1;
-    if (solt < 0) {
-      solt = interval;
-    }
-    Set<Integer> list = wheelQueue.get(solt);
-    list.add(id);
-    location.put(id, solt);
-    if (firstCheck) {
-      seq.incrementAndGet();
-    }
-    return firstCheck;
   }
 }
