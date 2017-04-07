@@ -1,6 +1,5 @@
 package com.edgar.util.vertx.task;
 
-import com.edgar.util.vertx.future.TraceFuture;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -21,11 +20,7 @@ class BaseTask<T> implements Task<T> {
 
   BaseTask(String name, Future<T> future) {
     this.name = name;
-    if (future instanceof TraceFuture) {
-      this.future = future;
-    } else {
-      this.future = TraceFuture.create(name, future);
-    }
+    this.future = future;
   }
 
   BaseTask(Future<T> future) {
