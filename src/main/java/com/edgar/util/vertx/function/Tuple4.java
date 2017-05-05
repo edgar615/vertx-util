@@ -5,89 +5,89 @@ package com.edgar.util.vertx.function;
  */
 public class Tuple4<T1, T2, T3, T4> {
 
-    private final T1 t1;
+  private final T1 t1;
 
-    private final T2 t2;
+  private final T2 t2;
 
-    private final T3 t3;
+  private final T3 t3;
 
-    private final T4 t4;
+  private final T4 t4;
 
-    private Tuple4(T1 t1, T2 t2, T3 t3, T4 t4) {
-        this.t1 = t1;
-        this.t2 = t2;
-        this.t3 = t3;
-        this.t4 = t4;
+  private Tuple4(T1 t1, T2 t2, T3 t3, T4 t4) {
+    this.t1 = t1;
+    this.t2 = t2;
+    this.t3 = t3;
+    this.t4 = t4;
+  }
+
+  public static <T1, T2, T3, T4> Tuple4<T1, T2, T3, T4> create(T1 t1, T2 t2, T3 t3, T4 t4) {
+    return new Tuple4<>(t1, t2, t3, t4);
+  }
+
+  public T1 getT1() {
+    return t1;
+  }
+
+  public T2 getT2() {
+    return t2;
+  }
+
+  public T3 getT3() {
+    return t3;
+  }
+
+  public T4 getT4() {
+    return t4;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
 
-    public static <T1, T2, T3, T4> Tuple4<T1, T2, T3, T4> create(T1 t1, T2 t2, T3 t3, T4 t4) {
-        return new Tuple4<>(t1, t2, t3, t4);
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public T1 getT1() {
-        return t1;
+    final Tuple4 tuple2 = (Tuple4) o;
+
+    if (t1 != null ? !t1.equals(tuple2.t1) : tuple2.t1 != null) {
+      return false;
     }
 
-    public T2 getT2() {
-        return t2;
+    if (t2 != null ? !t2.equals(tuple2.t2) : tuple2.t2 != null) {
+      return false;
     }
 
-    public T3 getT3() {
-        return t3;
+    if (t3 != null ? !t3.equals(tuple2.t3) : tuple2.t3 != null) {
+      return false;
     }
 
-    public T4 getT4() {
-        return t4;
+    if (t4 != null ? !t4.equals(tuple2.t4) : tuple2.t4 != null) {
+      return false;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
+    return true;
+  }
 
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+  @Override
+  public int hashCode() {
+    int result = t1 != null ? t1.hashCode() : 0;
 
-        final Tuple4 tuple2 = (Tuple4) o;
+    result = 31 * result + (t2 != null ? t2.hashCode() : 0);
 
-        if (t1 != null ? !t1.equals(tuple2.t1) : tuple2.t1 != null) {
-            return false;
-        }
+    result = 31 * result + (t3 != null ? t3.hashCode() : 0);
 
-        if (t2 != null ? !t2.equals(tuple2.t2) : tuple2.t2 != null) {
-            return false;
-        }
+    result = 31 * result + (t4 != null ? t4.hashCode() : 0);
 
-        if (t3 != null ? !t3.equals(tuple2.t3) : tuple2.t3 != null) {
-            return false;
-        }
-
-        if (t4 != null ? !t4.equals(tuple2.t4) : tuple2.t4 != null) {
-            return false;
-        }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = t1 != null ? t1.hashCode() : 0;
-
-        result = 31 * result + (t2 != null ? t2.hashCode() : 0);
-
-        result = 31 * result + (t3 != null ? t3.hashCode() : 0);
-
-        result = 31 * result + (t4 != null ? t4.hashCode() : 0);
-
-        return result;
-    }
+    return result;
+  }
 
 
-    @Override
-    public String toString() {
-        return String.format("(%s, %s, %s, %s)", getT1(), getT2(), getT3(), getT4());
-    }
+  @Override
+  public String toString() {
+    return String.format("(%s, %s, %s, %s)", getT1(), getT2(), getT3(), getT4());
+  }
 
 }

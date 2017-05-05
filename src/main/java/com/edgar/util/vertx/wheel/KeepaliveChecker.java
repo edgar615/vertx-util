@@ -36,17 +36,6 @@ import io.vertx.core.Vertx;
 public interface KeepaliveChecker {
 
   /**
-   * 创建一个KeepaliveChecker
-   *
-   * @param vertx
-   * @param options
-   * @return KeepaliveChecker
-   */
-  static KeepaliveChecker create(Vertx vertx, KeepaliveOptions options) {
-    return new KeepaliveCheckerImpl(vertx, options);
-  }
-
-  /**
    * 心跳
    *
    * @param id 设备id
@@ -59,4 +48,15 @@ public interface KeepaliveChecker {
    * @return
    */
   int counter();
+
+  /**
+   * 创建一个KeepaliveChecker
+   *
+   * @param vertx
+   * @param options
+   * @return KeepaliveChecker
+   */
+  static KeepaliveChecker create(Vertx vertx, KeepaliveOptions options) {
+    return new KeepaliveCheckerImpl(vertx, options);
+  }
 }

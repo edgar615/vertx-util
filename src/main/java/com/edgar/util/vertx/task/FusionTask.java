@@ -9,8 +9,8 @@ import io.vertx.core.Future;
  */
 class FusionTask<T, R> extends BaseTask<R> {
 
-    FusionTask(String name, Task<T> prevTask, TaskTransformer<T, R> taskTransformer) {
-        super(name, Future.<R>future());
-        taskTransformer.accept(prevTask, this);
-    }
+  FusionTask(String name, Task<T> prevTask, TaskTransformer<T, R> taskTransformer) {
+    super(name, Future.<R>future());
+    taskTransformer.accept(prevTask, this);
+  }
 }

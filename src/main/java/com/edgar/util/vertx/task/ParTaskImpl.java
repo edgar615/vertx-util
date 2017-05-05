@@ -13,29 +13,29 @@ import java.util.List;
  */
 class ParTaskImpl<T> extends BaseTask<List<T>> {
 
-    ParTaskImpl(String name, List<Future<T>> futures) {
-        super(name, Future.<List<T>>future());
-        final int size = futures.size();
-        List<Future> copyFuture = new ArrayList<>(size);
+  ParTaskImpl(String name, List<Future<T>> futures) {
+    super(name, Future.<List<T>>future());
+    final int size = futures.size();
+    List<Future> copyFuture = new ArrayList<>(size);
+    for (int i = 0; i < size; i++) {
+      copyFuture.add(futures.get(i));
+    }
+    CompositeFuture compositeFuture = CompositeFuture.all(copyFuture);
+    compositeFuture.setHandler(ar -> {
+      if (ar.succeeded()) {
+        List<T> results = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            copyFuture.add(futures.get(i));
+          results.add((T) ar.result().resultAt(i));
         }
-        CompositeFuture compositeFuture = CompositeFuture.all(copyFuture);
-        compositeFuture.setHandler(ar -> {
-            if (ar.succeeded()) {
-                List<T> results = new ArrayList<>(size);
-                for (int i = 0; i < size; i++) {
-                    results.add((T) ar.result().resultAt(i));
-                }
-                complete(results);
-            } else {
-                fail(ar.cause());
-            }
-        });
-    }
+        complete(results);
+      } else {
+        fail(ar.cause());
+      }
+    });
+  }
 
-    ParTaskImpl(List<Future<T>> futures) {
-        this("ParTask", futures);
-    }
+  ParTaskImpl(List<Future<T>> futures) {
+    this("ParTask", futures);
+  }
 
 }

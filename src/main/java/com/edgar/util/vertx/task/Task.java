@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -347,7 +349,7 @@ public interface Task<T> {
    * @return task
    */
   public static <T> Task<List<T>> par(String name, List<Future<T>> futures) {
-    return new ParTaskImpl<>(name,futures);
+    return new ParTaskImpl<>(name, futures);
   }
 
   /**
@@ -371,7 +373,8 @@ public interface Task<T> {
             LOGGER.debug("task->{} consumer throwable succeeded", prev.name());
           } catch (Exception e) {
             throwable = e;
-            LOGGER.debug("task->{} consumer throwable failed, error->{}", prev.name(), throwable.getMessage());
+            LOGGER.debug("task->{} consumer throwable failed, error->{}", prev.name(),
+                         throwable.getMessage());
           }
           next.fail(throwable);
         }
@@ -391,45 +394,6 @@ public interface Task<T> {
   }
 
   /**
-   * 将task从异常中恢复
-   *
-   * @param desc     任务描述
-   * @param function 异常转换类
-   * @return 新任务
-   */
-  // Task<T> recover(String desc, Function<Throwable, T> function);
-  default Task<T> recover(String desc, Function<Throwable, T> function) {
-    return new FusionTask<>(null, this, (prev, next) -> {
-      prev.setHandler(ar -> {
-        Throwable throwable = ar.cause();
-        if (ar.succeeded()) {
-          next.complete(prev.result());
-        }
-        if (throwable != null) {
-          try {
-            next.complete(function.apply(throwable));
-            LOGGER.debug("task->{} recover from throwable succeeded", prev.name());
-          } catch (Exception e) {
-            throwable = e;
-            LOGGER.debug("task->{} recover from throwable failed, error->{}", prev.name(), throwable.getMessage());
-            next.fail(throwable);
-          }
-        }
-      });
-    });
-  }
-
-  /**
-   * 将task从异常中恢复
-   *
-   * @param function 异常转换类
-   * @return 新任务
-   */
-  default Task<T> recover(Function<Throwable, T> function) {
-    return recover("recover: " + function.getClass().getName(), function);
-  }
-
-  /**
    * 任务完成之后，将结果转换为其他对象.
    *
    * @param function function类
@@ -437,7 +401,20 @@ public interface Task<T> {
    * @return task
    */
   default <R> Task<R> map(Function<T, R> function) {
-    return map("map: " + function.getClass().getName(), function);
+    return mapWithFallback(function, null);
+  }
+
+  /**
+   * 任务完成之后，将结果转换为其他对象.
+   *
+   * @param function function类
+   * @param fallback 如果function出现异常，回退的操作
+   * @param <R>      转换后的类型
+   * @return task
+   */
+  default <R> Task<R> mapWithFallback(Function<T, R> function,
+                                      BiFunction<Throwable, T, R> fallback) {
+    return mapWithFallback("map: " + function.getClass().getName(), function, fallback);
   }
 
   /**
@@ -449,20 +426,42 @@ public interface Task<T> {
    * @return task
    */
   default <R> Task<R> map(String desc, Function<T, R> function) {
+    return mapWithFallback(desc, function, null);
+  }
+
+  /**
+   * 任务完成之后，将结果转换为其他对象.
+   *
+   * @param desc     任务描述
+   * @param function function类
+   * @param fallback 如果function出现异常，回退的操作
+   * @param <R>      转换后的类型
+   * @return task
+   */
+  default <R> Task<R> mapWithFallback(String desc, Function<T, R> function,
+                                      BiFunction<Throwable, T, R> fallback) {
     return new FusionTask<>(desc, this, (prev, next) -> {
       prev.setHandler(ar -> {
-        Throwable throwable = ar.cause();
         if (ar.succeeded()) {
           try {
             next.complete(function.apply(ar.result()));
             LOGGER.debug("task->{} map to task->{} succeeded", prev.name(), next.name());
           } catch (Exception e) {
-            throwable = e;
-            LOGGER.debug("task->{} map to task->{} failed, error->{}", prev.name(), next.name(), throwable.getMessage());
+            LOGGER.debug("task->{} map to task->{} failed, error->{}", prev.name(), next.name(),
+                         e.getMessage());
+            if (fallback == null) {
+              next.fail(e);
+            } else {
+              try {
+                R apply = fallback.apply(e, ar.result());
+                next.complete(apply);
+              } catch (Exception e1) {
+                next.fail(e1);
+              }
+            }
           }
-        }
-        if (throwable != null) {
-          next.fail(throwable);
+        } else {
+          next.fail(ar.cause());
         }
       });
     });
@@ -473,13 +472,45 @@ public interface Task<T> {
    *
    * @param desc     任务描述
    * @param consumer consumer类
+   * @param fallback 如果consumer出现异常，回退的操作
+   * @return task
+   */
+  default Task<T> andThenWithFallback(String desc, Consumer<T> consumer,
+                                      BiConsumer<Throwable, T> fallback) {
+    BiFunction<Throwable, T, T> function = null;
+    if (fallback != null) {
+      function = (throwable, t) -> {
+        fallback.accept(throwable, t);
+        return t;
+      };
+    }
+    return mapWithFallback(desc, t -> {
+      consumer.accept(t);
+      return t;
+    }, function);
+  }
+
+  /**
+   * 任务完成后，根据结果做一些额外操作.
+   *
+   * @param desc     任务描述
+   * @param consumer consumer类
    * @return task
    */
   default Task<T> andThen(String desc, Consumer<T> consumer) {
-    return map(desc, t -> {
-      consumer.accept(t);
-      return t;
-    });
+    return andThenWithFallback(desc, consumer, null);
+  }
+
+
+  /**
+   * 任务完成后，根据结果做一些额外操作.
+   *
+   * @param consumer consumer类
+   * @param fallback 如果consumer出现异常，回退的操作
+   * @return task
+   */
+  default Task<T> andThenWithFallback(Consumer<T> consumer, BiConsumer<Throwable, T> fallback) {
+    return andThenWithFallback("andThen: " + consumer.getClass().getName(), consumer, fallback);
   }
 
   /**
@@ -489,7 +520,7 @@ public interface Task<T> {
    * @return task
    */
   default Task<T> andThen(Consumer<T> consumer) {
-    return andThen("andThen: " + consumer.getClass().getName(), consumer);
+    return andThenWithFallback(consumer, null);
   }
 
   /**
@@ -500,7 +531,20 @@ public interface Task<T> {
    * @return task
    */
   default <R> Task<R> flatMap(Function<T, Future<R>> function) {
-    return flatMap("flatMap: " + function.getClass().getName(), function);
+    return flatMapWithFallback(function, null);
+  }
+
+  /**
+   * 任务完成之后，让结果传递给另外一个任务执行，futureFunction用来使用结果创建一个新的任务.
+   *
+   * @param function function类，将结果转换为一个新的future
+   * @param fallback 如果function出现异常，回退的操作. 这个回退操作，不再返回一个Future,而是直接返回一个特定的值
+   * @param <R>      转换后的类型
+   * @return task
+   */
+  default <R> Task<R> flatMapWithFallback(Function<T, Future<R>> function,
+                                          BiFunction<Throwable, T, R> fallback) {
+    return flatMapWithFallback("flatMap: " + function.getClass().getName(), function, fallback);
   }
 
   /**
@@ -512,21 +556,43 @@ public interface Task<T> {
    * @return
    */
   default <R> Task<R> flatMap(String desc, Function<T, Future<R>> function) {
+    return flatMapWithFallback(desc, function, null);
+  }
+
+  /**
+   * 任务完成之后，让结果传递给另外一个任务执行，futureFunction用来使用结果创建一个新的任务.
+   *
+   * @param desc     任务描述
+   * @param function function类，将结果转换为一个新的future
+   * @param fallback 如果function出现异常，回退的操作. 这个回退操作，不再返回一个Future,而是直接返回一个特定的值
+   * @param <R>
+   * @return
+   */
+  default <R> Task<R> flatMapWithFallback(String desc, Function<T, Future<R>> function,
+                                          BiFunction<Throwable, T, R> fallback) {
     return new FusionTask<>(desc, this, (prev, next) -> {
       prev.setHandler(ar -> {
-        Throwable throwable = ar.cause();
         if (ar.succeeded()) {
           try {
             Future<R> rFuture = function.apply(ar.result());
             rFuture.setHandler(next.completer());
             LOGGER.debug("task->{} flatMap to task->{} succeeded", prev.name(), next.name());
           } catch (Exception e) {
-            throwable = e;
-            LOGGER.debug("task->{} flatMap to task->{} failed, error->{}", prev.name(), next.name(), throwable.getMessage());
+            LOGGER.debug("task->{} flatMap to task->{} failed, error->{}", prev.name(), next.name(),
+                         e.getMessage());
+            if (fallback == null) {
+              next.fail(e);
+            } else {
+              try {
+                R apply = fallback.apply(e, ar.result());
+                next.complete(apply);
+              } catch (Exception e1) {
+                next.fail(e1);
+              }
+            }
           }
-        }
-        if (throwable != null) {
-          next.fail(throwable);
+        } else {
+          next.fail(ar.cause());
         }
       });
     });
@@ -544,6 +610,5 @@ public interface Task<T> {
             .onFailure(throwable -> future.fail(throwable));
     return future;
   }
-
 
 }

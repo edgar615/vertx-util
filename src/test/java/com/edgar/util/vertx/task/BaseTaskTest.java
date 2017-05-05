@@ -155,6 +155,91 @@ public class BaseTaskTest {
   }
 
   @Test
+  public void testMapFallback(TestContext context) {
+    AtomicInteger seq = new AtomicInteger();
+    Async async = context.async();
+    Future<String> future = Future.future();
+//        future.complete("Hello World");
+    Task.create(future)
+            .mapWithFallback(s -> Integer.parseInt(s), (throwable, s) -> s.length())
+            .onFailure(throwable -> seq.incrementAndGet())
+            .andThen(i -> {
+              context.assertEquals("Hello World".length(), i);
+              context.assertEquals(seq.get(), 0);
+              async.complete();
+            })
+            .onFailure(throwable -> {
+              context.fail();
+            });
+    future.complete("Hello World");
+  }
+
+  @Test
+  public void testMapFallback2(TestContext context) {
+    AtomicInteger seq = new AtomicInteger();
+    Async async = context.async();
+    Future<String> future = Future.future();
+//        future.complete("Hello World");
+    Task.create(future)
+            .mapWithFallback(s -> Integer.parseInt(s),
+                             (throwable, s) -> {throw new RuntimeException(throwable);})
+            .onFailure(throwable -> seq.incrementAndGet())
+            .andThen(i -> {
+              context.fail();
+            })
+            .onFailure(throwable -> {
+              async.complete();
+            });
+    future.complete("Hello World");
+  }
+
+  @Test
+  public void testAndThenFallback(TestContext context) {
+    AtomicInteger seq = new AtomicInteger();
+    Async async = context.async();
+    Future<String> future = Future.future();
+//        future.complete("Hello World");
+    Task.create(future)
+            .map(s -> s.substring(0, 5))
+            .andThenWithFallback(s -> Integer.parseInt(s), (throwable, s) -> seq.incrementAndGet())
+            .onFailure(throwable -> seq.incrementAndGet())
+            .map(s -> s.length())
+            .andThen(i -> {
+              context.assertEquals(5, i);
+              context.assertEquals(seq.get(), 1);
+              async.complete();
+            })
+            .onFailure(throwable -> {
+              context.fail();
+            });
+    future.complete("Hello World");
+  }
+
+  @Test
+  public void testAndThenFallback2(TestContext context) {
+    AtomicInteger seq = new AtomicInteger();
+    Async async = context.async();
+    Future<String> future = Future.future();
+//        future.complete("Hello World");
+    Task.create(future)
+            .map(s -> s.substring(0, 5))
+            .andThenWithFallback(s -> Integer.parseInt(s), (throwable, s) -> {
+              seq.incrementAndGet();
+              throw new RuntimeException(throwable);
+            })
+            .onFailure(throwable -> seq.incrementAndGet())
+            .map(s -> s.length())
+            .andThen(i -> {
+              context.fail();
+            })
+            .onFailure(throwable -> {
+              context.assertEquals(seq.get(), 2);
+              async.complete();
+            });
+    future.complete("Hello World");
+  }
+
+  @Test
   public void testFlatMap(TestContext context) {
     Async async = context.async();
     Future<String> future = Future.future();
@@ -177,13 +262,10 @@ public class BaseTaskTest {
     future.complete("Hello World");
     Task.create(future)
             .map(s -> s.length())
-            .flatMap(new Function<Integer, Future<Integer>>() {
-              @Override
-              public Future<Integer> apply(Integer integer) {
-                Future<Integer> rFuture = Future.future();
-                rFuture.complete(integer * 2);
-                return rFuture;
-              }
+            .flatMap(integer -> {
+              Future<Integer> rFuture = Future.future();
+              rFuture.complete(integer * 2);
+              return rFuture;
             })
             .andThen(length -> {
               context.assertEquals("Hello World".length() * 2, length);
@@ -236,67 +318,29 @@ public class BaseTaskTest {
 //            throwable.printStackTrace();
       context.assertNotNull(throwable);
       async.complete();
-    })
-    ;
+    });
   }
 
   @Test
-  public void testRecover(TestContext context) {
-    AtomicInteger seq = new AtomicInteger();
-    Async async = context.async();
-    Future<String> future = Future.future();
-//        future.complete("Hello World");
-    Task.create(future)
-            .map(s -> Integer.parseInt(s))
-            .andThen(i -> context.fail())
-            .onFailure(throwable -> seq.incrementAndGet())
-            .recover(throwable -> -999)
-            .andThen(i -> {
-              context.assertEquals(-999, i);
-              context.assertEquals(seq.get(), 1);
-              async.complete();
-            })
-            .onFailure(throwable -> {
-              context.fail();
-            });
-    future.complete("Hello World");
-  }
-
-  @Test
-  public void testRecover2(TestContext context) {
+  public void testFlatMapFallback(TestContext context) {
     Async async = context.async();
     Future<String> future = Future.future();
     future.complete("Hello World");
     Task.create(future)
-            .map(s -> Integer.parseInt(s))
-            .andThen(i -> context.fail())
-            .recover(throwable -> -999)
-            .andThen(i -> {
-              context.assertEquals(-999, i);
+            .map(s -> s.length())
+            .flatMapWithFallback(integer -> {
+              Future<Integer> rFuture = Future.future();
+              rFuture.complete(integer / 0);
+              return rFuture;
+            }, (throwable, integer) -> 0)
+            .andThen(length -> {
+              context.assertEquals(0, length);
               async.complete();
-            })
-            .onFailure(throwable -> {
-              context.fail();
-            });
-  }
+            }).onFailure(throwable -> {
+//            throwable.printStackTrace();
+      context.fail();
 
-  @Test
-  public void testRecover3(TestContext context) {
-    Async async = context.async();
-    Future<String> future = Future.future();
-    future.complete("Hello World");
-    Task.create(future)
-            .map(s -> "" + s.length())
-            .map(s -> Integer.parseInt(s))
-            .andThen(i -> System.out.println(i))
-            .recover(throwable -> -999)
-            .andThen(i -> {
-              context.assertEquals("Hello World".length(), i);
-              async.complete();
-            })
-            .onFailure(throwable -> {
-              context.fail();
-            });
+    });
   }
 
   @Test

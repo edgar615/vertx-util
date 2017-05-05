@@ -10,45 +10,45 @@ import io.vertx.core.Handler;
  * @author Edgar  Date 2016/7/29
  */
 class Tuple5TaskDelegate<T1, T2, T3, T4, T5> implements Tuple5Task<T1, T2, T3, T4, T5> {
-    private final Task<Tuple5<T1, T2, T3, T4, T5>> task;
+  private final Task<Tuple5<T1, T2, T3, T4, T5>> task;
 
-    Tuple5TaskDelegate(Task<Tuple5<T1, T2, T3, T4, T5>> task) {
-        this.task = task;
-    }
+  Tuple5TaskDelegate(Task<Tuple5<T1, T2, T3, T4, T5>> task) {
+    this.task = task;
+  }
 
-    @Override
-    public Tuple5<T1, T2, T3, T4, T5> result() {
-        return task.result();
-    }
+  @Override
+  public Tuple5<T1, T2, T3, T4, T5> result() {
+    return task.result();
+  }
 
-    @Override
-    public String name() {
-        return task.name();
-    }
+  @Override
+  public String name() {
+    return task.name();
+  }
 
-    @Override
-    public void complete(Tuple5<T1, T2, T3, T4, T5> result) {
-        task.complete(result);
-    }
+  @Override
+  public void complete(Tuple5<T1, T2, T3, T4, T5> result) {
+    task.complete(result);
+  }
 
-    @Override
-    public void fail(Throwable throwable) {
-        task.fail(throwable);
-    }
+  @Override
+  public void fail(Throwable throwable) {
+    task.fail(throwable);
+  }
 
-    @Override
-    public boolean isComplete() {
-        return task.isComplete();
-    }
+  @Override
+  public boolean isComplete() {
+    return task.isComplete();
+  }
 
-    @Override
-    public void setHandler(Handler<AsyncResult<Tuple5<T1, T2, T3, T4, T5>>> handler) {
-        task.setHandler(handler);
-    }
+  @Override
+  public void setHandler(Handler<AsyncResult<Tuple5<T1, T2, T3, T4, T5>>> handler) {
+    task.setHandler(handler);
+  }
 
-    @Override
-    public Handler<AsyncResult<Tuple5<T1, T2, T3, T4, T5>>> completer() {
-        return task.completer();
-    }
+  @Override
+  public Handler<AsyncResult<Tuple5<T1, T2, T3, T4, T5>>> completer() {
+    return task.completer();
+  }
 
 }

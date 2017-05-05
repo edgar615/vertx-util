@@ -5,19 +5,20 @@ package com.edgar.util.vertx.task;
  */
 public class OtherFuture<T> {
 
-    private String key;
+  private String key;
 
-    private T result;
+  private T result;
 
-    /**
-     * 根据前一个值执行下一步操作
-     * @param prevResult
-     */
-    public void start(T prevResult) {
+  /**
+   * 根据前一个值执行下一步操作
+   *
+   * @param prevResult
+   */
+  public void start(T prevResult) {
 
-    }
+  }
 
-    public void complete() {
+  public void complete() {
 
-    }
+  }
 }

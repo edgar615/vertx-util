@@ -28,7 +28,7 @@ public class KeepaliveCheckerTest {
   @Test
   public void testKeepalive(TestContext testContext) throws InterruptedException {
     KeepaliveOptions options = new KeepaliveOptions()
-        .setInterval(5);
+            .setInterval(5);
     Set<Integer> online = new HashSet<>();
 
     vertx.eventBus().<JsonObject>consumer(options.getDisConnAddress(), removed -> {
@@ -70,7 +70,7 @@ public class KeepaliveCheckerTest {
   @Test
   public void testKeepalive2(TestContext testContext) throws InterruptedException {
     KeepaliveOptions options = new KeepaliveOptions()
-        .setInterval(5);
+            .setInterval(5);
 
     vertx.eventBus().<JsonObject>consumer(options.getDisConnAddress(), removed -> {
       System.out.println(System.currentTimeMillis() + ",removed:" + removed.body());
@@ -83,17 +83,17 @@ public class KeepaliveCheckerTest {
     Async async = testContext.async();
 
 
-    for (int i = 0; i < 10; i ++) {
+    for (int i = 0; i < 10; i++) {
       checker.heartbeat(i);
     }
 
     vertx.setTimer(3000l, l -> {
-      for (int i = 4; i < 8; i ++) {
+      for (int i = 4; i < 8; i++) {
         checker.heartbeat(i);
       }
     });
 
-    vertx.setTimer(9000l,l -> {
+    vertx.setTimer(9000l, l -> {
       async.complete();
     });
   }

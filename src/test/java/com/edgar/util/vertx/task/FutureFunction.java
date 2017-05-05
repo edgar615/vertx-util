@@ -13,22 +13,22 @@ import java.util.function.Function;
  */
 public class FutureFunction implements Function<Integer, Future<Integer>> {
 
-    private final Vertx vertx;
+  private final Vertx vertx;
 
-    public FutureFunction(Vertx vertx) {
-        this.vertx = vertx;
-    }
+  public FutureFunction(Vertx vertx) {
+    this.vertx = vertx;
+  }
 
-    @Override
-    public Future<Integer> apply(Integer length) {
-        Future<Integer> future = Future.future();
-        vertx.createHttpClient().get(9000, "localhost", "/?length=" + length, response -> {
-            response.bodyHandler(body -> {
-                JsonObject jsonObject = body.toJsonObject();
-                future.complete(Integer.parseInt(jsonObject.getString("length")) * 2);
-            });
-        }).end();
+  @Override
+  public Future<Integer> apply(Integer length) {
+    Future<Integer> future = Future.future();
+    vertx.createHttpClient().get(9000, "localhost", "/?length=" + length, response -> {
+      response.bodyHandler(body -> {
+        JsonObject jsonObject = body.toJsonObject();
+        future.complete(Integer.parseInt(jsonObject.getString("length")) * 2);
+      });
+    }).end();
 
-        return future;
-    }
+    return future;
+  }
 }

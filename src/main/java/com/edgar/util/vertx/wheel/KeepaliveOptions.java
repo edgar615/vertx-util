@@ -6,15 +6,20 @@ package com.edgar.util.vertx.wheel;
 public class KeepaliveOptions {
 
   public static final String DEFAULT_DISCONN_ADDRESS = "com.edgar.keepalive.disconn";
+
   public static final String DEFAULT_FIRST_CONN_ADDRESS = "com.edgar.keepalive.firstconn";
+
   public static final int DEFAULT_INTERVAL = 30;
+
   public static final int DEFAULT_CHECK_PERIOD = 1000;
 
 
   private String disConnAddress = DEFAULT_DISCONN_ADDRESS;
+
   private String firstConnAddress = DEFAULT_FIRST_CONN_ADDRESS;
 
   private int interval = DEFAULT_INTERVAL;
+
   private int checkPeriod = DEFAULT_CHECK_PERIOD;
 
   public int getCheckPeriod() {
