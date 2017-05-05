@@ -147,29 +147,4 @@ public class ParTaskTest {
     future3.fail(new RuntimeException());
   }
 
-//    @Test
-//    public void testRecover(TestContext context) {
-//        Async async = context.async();
-//        Future<Integer> future1 = Future.future();
-//        Future<Integer> future2 = Future.future();
-//        Future<Integer> future3 = Future.future();
-//
-//        Task.par(Arrays.asList(future1, future2, future3))
-//                .andThen(length -> {
-//                    context.fail();
-//                    async.isFailed();
-//                })
-//                .onFailure(throwable -> {
-//                    context.assertNotNull(throwable);
-////                    async.complete();
-//                }).recover(throwable -> Arrays.asList((Integer) 1))
-//                .andThen(i -> {
-//                    context.assertEquals(i.size(), 1);
-//                    async.complete();
-//                });
-//        future2.complete(10);
-//        future3.complete(10);
-//        future1.fail(new RuntimeException());
-//    }
-
 }
