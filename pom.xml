@@ -109,14 +109,14 @@
                                         <version>[3.0.0,)</version>
                                     </requireMavenVersion>
                                     <!-- 表示禁止使用的依赖-->
-                                    <!--<bannedDependencies>
-                                        &lt;!&ndash;是否检查传递性依赖(间接依赖)&ndash;&gt;
+                                    <bannedDependencies>
+                                        <!--是否检查传递性依赖(间接依赖)-->
                                         <searchTransitive>true</searchTransitive>
                                         <excludes>
                                             <exclude>org.apache.commons:commons-lang3</exclude>
                                         </excludes>
                                         <message>must use Guava，not commons-lang</message>
-                                    </bannedDependencies>-->
+                                    </bannedDependencies>
                                 </rules>
                             </configuration>
                         </execution>
@@ -141,20 +141,6 @@
                     <configuration>
                         <argLine>-noverify</argLine>
                     </configuration>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>cobertura-maven-plugin</artifactId>
-                    <version>2.7</version>
-                    <!--<executions>
-                        <execution>
-                            <phase>test</phase>
-                            <goals>
-                                <goal>cobertura</goal>
-                            </goals>
-                        </execution>
-                    </executions>-->
                 </plugin>
 
                 <plugin>
