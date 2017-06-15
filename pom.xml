@@ -6,7 +6,7 @@
 
     <groupId>com.edgar</groupId>
     <artifactId>vertx-util</artifactId>
-    <version>1.0.5</version>
+    <version>1.0.6</version>
 
     <properties>
         <argLine>-Dfile.encoding=UTF-8</argLine>
@@ -15,6 +15,7 @@
         <project.build.sourceEncoding>${java.encoding}</project.build.sourceEncoding>
 
         <junit.version>4.12</junit.version>
+        <awaitility.version>2.0.0</awaitility.version>
         <vertx.version>3.4.1</vertx.version>
         <slf4j.version>1.7.24</slf4j.version>
 
@@ -26,6 +27,13 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility</artifactId>
+                <version>${awaitility.version}</version>
                 <scope>test</scope>
             </dependency>
 
@@ -80,6 +88,11 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

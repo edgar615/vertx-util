@@ -6,6 +6,8 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Edgar  Date 2017/6/12
  */
 public class HierarchicalDeployment {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalDeployment.class);
 
   private volatile DeploymentState state = DeploymentState.WAITING;
 
@@ -30,11 +34,14 @@ public class HierarchicalDeployment {
 
   private String verticleClass;
 
-  private int instance = 1;
+  private int instances = 1;
 
   private boolean worker = false;
 
   public HierarchicalDeployment(String verticleName, JsonObject config) {
+    if (verticleName == null) {
+      throw new IllegalArgumentException("Field `name` not specified for verticle");
+    }
     this.verticleName = verticleName;
     HierarchicalDeploymentConverter.fromJson(config, this);
   }
@@ -52,12 +59,17 @@ public class HierarchicalDeployment {
     return this;
   }
 
-  public int getInstance() {
-    return instance;
+  public int getInstances() {
+    return instances;
   }
 
-  public HierarchicalDeployment setInstance(int instance) {
-    this.instance = instance;
+  public HierarchicalDeployment setInstances(int instances) {
+    if (instances < 1) {
+      throw new IllegalArgumentException(
+              String.format("Field `instances` not specified or less than 1 for verticle %s",
+                                verticleName));
+    }
+    this.instances = instances;
     return this;
   }
 
@@ -97,12 +109,14 @@ public class HierarchicalDeployment {
     DeploymentOptions deploymentOptions = new DeploymentOptions()
             .setConfig(config)
             .setWorker(worker)
-            .setInstances(instance);
+            .setInstances(instances);
     vertx.deployVerticle(verticleClass, deploymentOptions, ar -> {
       if (ar.succeeded()) {
+        LOGGER.info("deploy {} succeeded", verticleName);
         state = DeploymentState.COMPLETED;
         handler.handle(Future.succeededFuture(verticleName));
       } else {
+        LOGGER.error("deploy {} failed", verticleName, ar.cause());
         handler.handle(Future.failedFuture(ar.cause()));
       }
     });

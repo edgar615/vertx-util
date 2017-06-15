@@ -1,7 +1,12 @@
 package com.edgar.util.vertx.deployment;
 
+import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 /**
  * Created by Edgar on 2017/6/13.
@@ -31,10 +36,17 @@ class HierarchicalDeploymentConverter {
     if (json.getValue("class") instanceof String) {
       hd.setVerticleClass(json.getString("class"));
     } else {
-      throw new RuntimeException("miss verticle class");
+      throw new IllegalStateException(
+              String.format("Field `class` not specified for for verticle %s", hd.getVerticleName()));
     }
     if (json.getValue("instances") instanceof Integer) {
-      hd.setInstance(json.getInteger("instances"));
+      int instances = json.getInteger("instances");
+      if (instances < 1) {
+        throw new IllegalArgumentException(
+                String.format("Field `instances` not specified or less than 1 for verticle %s",
+                              hd.getVerticleName()));
+      }
+      hd.setInstances(instances);
     }
     if (json.getValue("worker") instanceof Boolean) {
       hd.setWorker(json.getBoolean("worker"));
@@ -51,4 +63,31 @@ class HierarchicalDeploymentConverter {
       }
     }
   }
+
+//  protected JsonObject getConfiguration(String configFile) {
+//    JsonObject conf;
+//    if (configFile != null) {
+//      try (Scanner scanner = new Scanner(new File(configFile)).useDelimiter("\\A")) {
+//        String sconf = scanner.next();
+//        try {
+//          conf = new JsonObject(sconf);
+//        } catch (DecodeException e) {
+////          log.error("Configuration file " + sconf + " does not contain a valid JSON object");
+//          return null;
+//        }
+//      } catch (FileNotFoundException e) {
+//        try {
+//          conf = new JsonObject(configFile);
+//        } catch (DecodeException e2) {
+//          // The configuration is not printed for security purpose, it can contain sensitive data.
+////          log.error("The -conf option does not point to an existing file or is not a valid JSON object");
+//          e2.printStackTrace();
+//          return null;
+//        }
+//      }
+//    } else {
+//      conf = null;
+//    }
+//    return conf;
+//  }
 }

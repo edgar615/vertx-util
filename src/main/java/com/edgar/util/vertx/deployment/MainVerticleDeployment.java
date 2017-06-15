@@ -24,7 +24,7 @@ public class MainVerticleDeployment {
       HierarchicalDeployment options =
               new HierarchicalDeployment(verticleName,
                                          verticlesConfig.getJsonObject(verticleName,
-                                                                              new JsonObject()));
+                                                                       new JsonObject()));
       deployments.add(options);
     }
 
@@ -40,13 +40,6 @@ public class MainVerticleDeployment {
     }
   }
 
-  private boolean checkUndefined(HierarchicalDeployment deployment) {
-   return deployment.getDependencyVerticles().stream()
-            .map(this::get)
-            .filter(d -> d == null)
-            .count() > 0;
-  }
-
   public HierarchicalDeployment get(String verticle) {
     Optional<HierarchicalDeployment> optional
             = deployments.stream()
@@ -58,20 +51,38 @@ public class MainVerticleDeployment {
     return null;
   }
 
-  private List<String> ancestors(HierarchicalDeployment deployment) {
-    List<String> ancestors = new ArrayList<>();
-    ancestors.addAll(deployment.getDependencyVerticles());
+  public List<HierarchicalDeployment> getDeployments() {
+    return deployments;
+  }
+
+  public JsonObject getConfig() {
+    return config;
+  }
+
+  private boolean checkUndefined(HierarchicalDeployment deployment) {
+    return deployment.getDependencyVerticles().stream()
+                   .map(this::get)
+                   .filter(d -> d == null)
+                   .count() > 0;
+  }
+
+  private void ancestors(HierarchicalDeployment deployment, List<String> ancestors) {
+//    ancestors.addAll(deployment.getDependencyVerticles());
     for (String parent : deployment.getDependencyVerticles()) {
-      ancestors.addAll(ancestors(get(parent)));
+      if (ancestors.contains(parent)) {
+        throw new IllegalArgumentException("cycle dependency:" + deployment.getVerticleName());
+      }
+      ancestors.add(parent);
+      ancestors(get(parent), ancestors);
     }
-    return ancestors;
   }
 
   private boolean checkCycle(HierarchicalDeployment deployment) {
-    List<String> ancestors = ancestors(deployment);
-  if (ancestors.isEmpty()) {
-    return false;
-  }
+    List<String> ancestors = new ArrayList<>();
+    ancestors(deployment, ancestors);
+    if (ancestors.isEmpty()) {
+      return false;
+    }
 
     for (String ancestor : ancestors) {
       if (ancestor.equals(deployment.getVerticleName())) {
@@ -79,14 +90,5 @@ public class MainVerticleDeployment {
       }
     }
     return false;
-  }
-
-
-  public List<HierarchicalDeployment> getDeployments() {
-    return deployments;
-  }
-
-  public JsonObject getConfig() {
-    return config;
   }
 }

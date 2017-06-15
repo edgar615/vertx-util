@@ -11,6 +11,7 @@ public class TestVerticle extends AbstractVerticle {
 
   @Override
   public void start() throws Exception {
-    System.out.println("TestVerticle");
+    System.out.println("TestVerticle:" + vertx.getOrCreateContext().isWorkerContext());
+    vertx.eventBus().send("deployment.test", config().getInteger("port", 1));
   }
 }
