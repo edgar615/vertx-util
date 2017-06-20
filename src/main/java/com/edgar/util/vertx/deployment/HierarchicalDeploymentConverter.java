@@ -1,12 +1,7 @@
 package com.edgar.util.vertx.deployment;
 
-import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Scanner;
 
 /**
  * Created by Edgar on 2017/6/13.
@@ -36,7 +31,7 @@ class HierarchicalDeploymentConverter {
     if (json.getValue("class") instanceof String) {
       hd.setVerticleClass(json.getString("class"));
     } else {
-      throw new IllegalStateException(
+      throw new IllegalArgumentException(
               String.format("Field `class` not specified for for verticle %s", hd.getVerticleName()));
     }
     if (json.getValue("instances") instanceof Integer) {
@@ -47,6 +42,19 @@ class HierarchicalDeploymentConverter {
                               hd.getVerticleName()));
       }
       hd.setInstances(instances);
+    }
+    if (json.getValue("instances") instanceof String) {
+      String instancesStr = json.getString("instances");
+      if (instancesStr.length() < 2) {
+        throw new IllegalArgumentException(
+                String.format("Field `instances` not specified or less than 1 for verticle %s",
+                              hd.getVerticleName()));
+      }
+      if (instancesStr.endsWith("C")) {
+        instancesStr = instancesStr.substring(0, instancesStr.indexOf("C"));
+        int instances = Integer.parseInt(instancesStr);
+        hd.setInstances(instances * Runtime.getRuntime().availableProcessors());
+      }
     }
     if (json.getValue("worker") instanceof Boolean) {
       hd.setWorker(json.getBoolean("worker"));

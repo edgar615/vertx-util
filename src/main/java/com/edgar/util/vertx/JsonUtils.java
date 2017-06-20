@@ -1,11 +1,8 @@
 package com.edgar.util.vertx;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -53,13 +50,35 @@ public class JsonUtils {
   }
 
   /**
+   * 从一个JSON对象中取出键是以prefix开头的属性.
+   *
+   * @param jsonObject JSON对象
+   * @param prefix     键值前缀
+   * @return int类型的值，如果value不能转换为int，抛出异常
+   */
+  public static JsonObject extractByPrefix(JsonObject jsonObject,
+                                           String prefix, boolean removePrefix) {
+    JsonObject prefixJson = new JsonObject();
+    for (String key : jsonObject.fieldNames()) {
+      if (key.startsWith(prefix)) {
+        String newKey = key;
+        if (removePrefix) {
+          newKey = key.substring(prefix.length());
+        }
+        prefixJson.put(newKey, jsonObject.getValue(key));
+      }
+    }
+    return prefixJson;
+  }
+
+  /**
    * 从一个JSON对象中获取int
    *
    * @param jsonObject JSON对象
    * @param key        键值
    * @return int类型的值，如果value不能转换为int，抛出异常
    */
-  static Integer getInteger(JsonObject jsonObject, String key) {
+  public static Integer getInteger(JsonObject jsonObject, String key) {
     Object value = jsonObject.getValue(key);
     if (value == null) {
       return null;
@@ -84,7 +103,7 @@ public class JsonUtils {
    * @param def        默认值
    * @return int类型的值，如果value不能转换为int，抛出异常，如果没有该值，返回默认值
    */
-  static Integer getInteger(JsonObject jsonObject, String key, int def) {
+  public static Integer getInteger(JsonObject jsonObject, String key, int def) {
     Integer value = getInteger(jsonObject, key);
 
     if (value == null) {
@@ -93,7 +112,7 @@ public class JsonUtils {
     return value;
   }
 
-  static Map<String, Object> toMap(JsonObject jsonObject) {
+  public static Map<String, Object> toMap(JsonObject jsonObject) {
     Map<String, Object> map = new HashMap<>();
     jsonObject.getMap().forEach((key, value) -> {
       map.put(key, check(value));
@@ -101,7 +120,7 @@ public class JsonUtils {
     return map;
   }
 
-  static List<Object> toList(JsonArray jsonArray) {
+  public static List<Object> toList(JsonArray jsonArray) {
     List<Object> list = new ArrayList<>();
     jsonArray.getList().forEach(value -> {
       list.add(check(value));
@@ -143,7 +162,7 @@ public class JsonUtils {
    * @param key        键值
    * @return bool类型的值，如果value不能转换为bool，抛出异常
    */
-  static Boolean getBoolean(JsonObject jsonObject, String key) {
+  public static Boolean getBoolean(JsonObject jsonObject, String key) {
     Object value = jsonObject.getValue(key);
     if (value == null) {
       return null;
@@ -165,7 +184,7 @@ public class JsonUtils {
    * @param def        默认值
    * @return bool类型的值，如果value不能转换为bool，抛出异常，如果没有该值，返回默认值
    */
-  static Boolean getBoolean(JsonObject jsonObject, String key, Boolean def) {
+  public static Boolean getBoolean(JsonObject jsonObject, String key, Boolean def) {
     Boolean value = getBoolean(jsonObject, key);
 
     if (value == null) {

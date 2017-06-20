@@ -33,6 +33,19 @@ public class MainVerticleTest {
   }
 
   @Test
+  public void testInstanceProcessors(TestContext testContext) {
+    int processors = Runtime.getRuntime().availableProcessors();
+    JsonObject config = new JsonObject()
+            .put("TestVerticle", new JsonObject()
+                    .put("class", "com.edgar.util.vertx.deployment.TestVerticle")
+                    .put("instances", "5C"));
+    MainVerticleDeployment deployment = new MainVerticleDeployment(new JsonObject().put
+            ("verticles", config));
+    Assert.assertEquals(1, deployment.getDeployments().size());
+    Assert.assertEquals(5 * processors, deployment.getDeployments().get(0).getInstances());
+  }
+
+  @Test
   public void undifinedDependencyShouldThrowException(TestContext testContext) {
     JsonObject config = new JsonObject()
             .put("TestVerticle", new JsonObject()
