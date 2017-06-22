@@ -41,12 +41,12 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
   /**
    * 环形队列
    */
-  private final Map<Integer, Set<Integer>> queue = new ConcurrentHashMap<>();
+  private final Map<Integer, Set<Integer>> bucket = new ConcurrentHashMap<>();
 
-  /**
-   * 序列号
-   */
-  private final AtomicInteger seq = new AtomicInteger(0);
+//  /**
+//   * 序列号
+//   */
+//  private final AtomicInteger seq = new AtomicInteger(0);
 
   /**
    * 设备掉线的事件地址
@@ -66,28 +66,21 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     this.period = options.getCheckPeriod();
 
     for (int i = 0; i <= interval; i++) {
-      queue.put(i, new CopyOnWriteArraySet<>());
+      bucket.put(i, new CopyOnWriteArraySet<>());
     }
     vertx.setPeriodic(period, l -> {
-      forward();
-      Set<Integer> oldList = disconn();
+      int prevCursor = forward();
+      Set<Integer> oldList = disconn(prevCursor);
       if (oldList.size() > 0) {
         vertx.eventBus().publish(disConnAddress,
-                                 new JsonObject().put("ids", new JsonArray(new ArrayList(oldList)))
-                                         .put("seq", seq.get()));
+            new JsonObject().put("ids", new JsonArray(new ArrayList(oldList))));
       }
     });
   }
 
-  private synchronized Set<Integer> disconn() {
-    int deadSolt = deadSolt();
-//      int removedSolt = cursor.incrementAndGet() % interval - 1;
-    checkCycle();
-    Set<Integer> oldList = queue.put(deadSolt, new CopyOnWriteArraySet<>());
+  private synchronized Set<Integer> disconn(int prevCursor) {
+    Set<Integer> oldList = bucket.put(prevCursor, new CopyOnWriteArraySet<>());
     oldList.forEach(i -> location.remove(i));
-    if (!oldList.isEmpty()) {
-      seq.incrementAndGet();
-    }
     return oldList;
   }
 
@@ -95,7 +88,7 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     boolean firstCheck = true;
     if (location.containsKey(id)) {
       int currentSolt = location.get(id);
-      Set<Integer> list = queue.get(currentSolt);
+      Set<Integer> list = bucket.get(currentSolt);
       list.remove(id);
       firstCheck = false;
     }
@@ -103,12 +96,9 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     if (solt < 0) {
       solt = interval;
     }
-    Set<Integer> list = queue.get(solt);
+    Set<Integer> list = bucket.get(solt);
     list.add(id);
     location.put(id, solt);
-    if (firstCheck) {
-      seq.incrementAndGet();
-    }
     return firstCheck;
   }
 
@@ -117,10 +107,8 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     boolean firstCheck = registerHeartbeat(id);
     if (firstCheck) {
       vertx.eventBus().publish(firstConnAddress,
-                               new JsonObject().put("id", id)
-                                       .put("seq", seq.get()));
+          new JsonObject().put("id", id));
     }
-    ;
   }
 
   @Override
@@ -128,20 +116,13 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     return location.size();
   }
 
-  private int deadSolt() {
-    if (cursor.get() == 0) {
-      return interval;
-    }
-    return cursor.get() - 1;
+
+  /**
+   * 游标向前移动一格.
+   */
+  private int forward() {
+    return cursor
+        .getAndAccumulate(1, (left, right) -> left + right > interval ? 0 : left + right);
   }
 
-  private void forward() {
-    cursor.incrementAndGet();
-  }
-
-  private void checkCycle() {
-    if (cursor.get() == interval + 1) {
-      cursor.set(0);
-    }
-  }
 }
