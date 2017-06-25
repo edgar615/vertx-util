@@ -63,14 +63,13 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     this.interval = options.getInterval();
     this.disConnAddress = options.getDisConnAddress();
     this.firstConnAddress = options.getFirstConnAddress();
-    this.period = options.getCheckPeriod();
+    this.period = options.getStep();
 
     for (int i = 0; i <= interval; i++) {
       bucket.put(i, new CopyOnWriteArraySet<>());
     }
     vertx.setPeriodic(period, l -> {
-      int prevCursor = forward();
-      Set<Integer> oldList = disconn(prevCursor);
+      Set<Integer> oldList = forward();
       if (oldList.size() > 0) {
         vertx.eventBus().publish(disConnAddress,
             new JsonObject().put("ids", new JsonArray(new ArrayList(oldList))));
@@ -78,33 +77,40 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     });
   }
 
-  private synchronized Set<Integer> disconn(int prevCursor) {
-    Set<Integer> oldList = bucket.put(prevCursor, new CopyOnWriteArraySet<>());
-    oldList.forEach(i -> location.remove(i));
-    return oldList;
+  /**
+   * 游标向前移动一格
+   * @return
+   */
+  private synchronized Set<Integer> forward() {
+    int expiredSolt = cursor
+        .getAndAccumulate(1, (left, right) -> left + right > interval ? 0 : left + right);
+    Set<Integer> disConnectedIds = bucket.put(expiredSolt, new CopyOnWriteArraySet<>());
+    disConnectedIds.forEach(i -> location.remove(i));
+    return disConnectedIds;
   }
 
-  private synchronized boolean registerHeartbeat(Integer id) {
-    boolean firstCheck = true;
-    if (location.containsKey(id)) {
-      int currentSolt = location.get(id);
-      Set<Integer> list = bucket.get(currentSolt);
-      list.remove(id);
-      firstCheck = false;
-    }
+  /**
+   * 向桶中增加一个心跳．
+   * @param id
+   * @return 如果是第一次添加（或者掉线后再次添加）返回true
+   */
+  private synchronized boolean addToBucket(Integer id) {
     int solt = cursor.get() - 1;
     if (solt < 0) {
       solt = interval;
     }
-    Set<Integer> list = bucket.get(solt);
-    list.add(id);
-    location.put(id, solt);
-    return firstCheck;
+    Integer oldLocaction = location.put(id, solt);
+    if (oldLocaction != null) {
+     bucket.get(oldLocaction).remove(id);
+    }
+    bucket.get(solt).add(id);
+
+    return oldLocaction == null;
   }
 
   @Override
-  public void heartbeat(Integer id) {
-    boolean firstCheck = registerHeartbeat(id);
+  public void add(Integer id) {
+    boolean firstCheck = addToBucket(id);
     if (firstCheck) {
       vertx.eventBus().publish(firstConnAddress,
           new JsonObject().put("id", id));
@@ -112,17 +118,9 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
   }
 
   @Override
-  public int counter() {
+  public int size() {
     return location.size();
   }
 
-
-  /**
-   * 游标向前移动一格.
-   */
-  private int forward() {
-    return cursor
-        .getAndAccumulate(1, (left, right) -> left + right > interval ? 0 : left + right);
-  }
 
 }

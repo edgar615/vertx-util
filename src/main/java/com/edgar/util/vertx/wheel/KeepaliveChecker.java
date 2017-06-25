@@ -36,18 +36,18 @@ import io.vertx.core.Vertx;
 public interface KeepaliveChecker {
 
   /**
-   * 心跳
+   * 记录一次心跳
    *
    * @param id 设备id
    */
-  void heartbeat(Integer id);
+  void add(Integer id);
 
   /**
    * 在线的数量
    *
    * @return
    */
-  int counter();
+  int size();
 
   /**
    * 创建一个KeepaliveChecker

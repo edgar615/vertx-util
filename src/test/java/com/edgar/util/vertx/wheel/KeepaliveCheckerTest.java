@@ -5,12 +5,15 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
+import org.awaitility.Awaitility;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by edgar on 17-3-17.
@@ -29,41 +32,38 @@ public class KeepaliveCheckerTest {
   public void testKeepalive(TestContext testContext) throws InterruptedException {
     KeepaliveOptions options = new KeepaliveOptions()
             .setInterval(5);
-    Set<Integer> online = new HashSet<>();
+    Set<Integer> first = new HashSet<>();
+    Set<Integer> dis = new HashSet<>();
 
     vertx.eventBus().<JsonObject>consumer(options.getDisConnAddress(), removed -> {
       System.out.println(System.currentTimeMillis() + ",removed:" + removed.body());
-      online.removeAll(removed.body().getJsonArray("ids").getList());
+      dis.addAll(removed.body().getJsonArray("ids").getList());
     });
     vertx.eventBus().<JsonObject>consumer(options.getFirstConnAddress(), added -> {
       System.out.println(System.currentTimeMillis() + ",added:" + added.body());
-      online.add(added.body().getInteger("id"));
+      first.add(added.body().getInteger("id"));
     });
-    KeepaliveCheckerImpl checker = new KeepaliveCheckerImpl(vertx, options);
+    KeepaliveChecker checker = new KeepaliveCheckerImpl(vertx, options);
 
-    Async async = testContext.async();
+    checker.add(1);
+    checker.add(2);
 
+    testContext.assertEquals(2, checker.size());
 
-    checker.heartbeat(1);
-    checker.heartbeat(2);
+    TimeUnit.SECONDS.sleep(1);
 
-    vertx.setTimer(1000, l -> {
-      System.out.println("after 1s:online:" + online);
-      testContext.assertEquals(2, online.size());
-    });
+    //１秒后仍然有２个在线
+    testContext.assertEquals(2, checker.size());
 
-    vertx.setTimer(5100, l -> {
-      System.out.println("after 5s:line:" + online);
-      checker.heartbeat(1);
-      System.out.println("after 5s:line:" + online);
-//      testContext.assertEquals(1, online.size());
-    });
+    TimeUnit.SECONDS.sleep(3);
+    checker.add(1);
+    testContext.assertEquals(2, checker.size());
 
-    vertx.setTimer(13000, l -> {
-      System.out.println("after 10s:line:" + online);
-      testContext.assertEquals(0, online.size());
-      async.complete();
-    });
+    TimeUnit.SECONDS.sleep(2);
+    testContext.assertEquals(1, checker.size());
+
+    testContext.assertEquals(2, first.size());
+    testContext.assertEquals(1, dis.size());
   }
 
 
@@ -72,30 +72,44 @@ public class KeepaliveCheckerTest {
     KeepaliveOptions options = new KeepaliveOptions()
             .setInterval(5);
 
+    Set<Integer> first = new HashSet<>();
+    Set<Integer> dis = new HashSet<>();
+
     vertx.eventBus().<JsonObject>consumer(options.getDisConnAddress(), removed -> {
       System.out.println(System.currentTimeMillis() + ",removed:" + removed.body());
+      dis.addAll(removed.body().getJsonArray("ids").getList());
     });
     vertx.eventBus().<JsonObject>consumer(options.getFirstConnAddress(), added -> {
       System.out.println(System.currentTimeMillis() + ",added:" + added.body());
+      first.add(added.body().getInteger("id"));
     });
     KeepaliveCheckerImpl checker = new KeepaliveCheckerImpl(vertx, options);
 
-    Async async = testContext.async();
-
-
     for (int i = 0; i < 10; i++) {
-      checker.heartbeat(i);
+      checker.add(i);
     }
 
-    vertx.setTimer(3000l, l -> {
-      for (int i = 4; i < 8; i++) {
-        checker.heartbeat(i);
-      }
-    });
+    testContext.assertEquals(10, checker.size());
 
-    vertx.setTimer(9000l, l -> {
-      async.complete();
-    });
+    TimeUnit.SECONDS.sleep(3);
+
+    testContext.assertEquals(10, first.size());
+    testContext.assertEquals(0, dis.size());
+
+    testContext.assertEquals(10, checker.size());
+    for (int i = 4; i < 8; i++) {
+      checker.add(i);
+    }
+
+    TimeUnit.SECONDS.sleep(3);
+    testContext.assertEquals(6, dis.size());
+    testContext.assertEquals(4, checker.size());
+
+    TimeUnit.SECONDS.sleep(3);
+
+    testContext.assertEquals(0, checker.size());
+    testContext.assertEquals(10, dis.size());
+
   }
 
 }

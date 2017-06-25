@@ -5,29 +5,41 @@ package com.edgar.util.vertx.wheel;
  */
 public class KeepaliveOptions {
 
-  public static final String DEFAULT_DISCONN_ADDRESS = "com.edgar.keepalive.disconn";
+  public static final String DEFAULT_DISCONN_ADDRESS = "com.edgar.keepalive.disconnected";
 
-  public static final String DEFAULT_FIRST_CONN_ADDRESS = "com.edgar.keepalive.firstconn";
+  public static final String DEFAULT_FIRST_CONN_ADDRESS = "com.edgar.keepalive.firstconnected";
 
   public static final int DEFAULT_INTERVAL = 30;
 
-  public static final int DEFAULT_CHECK_PERIOD = 1000;
+  public static final int DEFAULT_STEP = 1000;
 
 
+  /**
+   * 掉线事件
+   */
   private String disConnAddress = DEFAULT_DISCONN_ADDRESS;
 
+  /**
+   * 初次上线事件
+   */
   private String firstConnAddress = DEFAULT_FIRST_CONN_ADDRESS;
 
+  /**
+   * 事件轮的桶的大小,interval*checkPeriod就是掉线时间
+   */
   private int interval = DEFAULT_INTERVAL;
 
-  private int checkPeriod = DEFAULT_CHECK_PERIOD;
+  /**
+   * 时间轮每次移动的时间间隔，毫秒数
+   */
+  private int step = DEFAULT_STEP;
 
-  public int getCheckPeriod() {
-    return checkPeriod;
+  public int getStep() {
+    return step;
   }
 
-  public KeepaliveOptions setCheckPeriod(int checkPeriod) {
-    this.checkPeriod = checkPeriod;
+  public KeepaliveOptions setStep(int step) {
+    this.step = step;
     return this;
   }
 
