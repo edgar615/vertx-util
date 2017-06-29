@@ -15,14 +15,17 @@ public class FutureFunction implements Function<Integer, Future<Integer>> {
 
   private final Vertx vertx;
 
-  public FutureFunction(Vertx vertx) {
+  private final int port;
+
+  public FutureFunction(Vertx vertx, int port) {
     this.vertx = vertx;
+    this.port = port;
   }
 
   @Override
   public Future<Integer> apply(Integer length) {
     Future<Integer> future = Future.future();
-    vertx.createHttpClient().get(9000, "localhost", "/?length=" + length, response -> {
+    vertx.createHttpClient().get(port, "localhost", "/?length=" + length, response -> {
       response.bodyHandler(body -> {
         JsonObject jsonObject = body.toJsonObject();
         future.complete(Integer.parseInt(jsonObject.getString("length")) * 2);

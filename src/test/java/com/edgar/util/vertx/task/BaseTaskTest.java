@@ -247,7 +247,7 @@ public class BaseTaskTest {
 
     Task.create(future)
             .map(s -> s.length())
-            .flatMap(new FutureFunction(vertx))
+            .flatMap(new FutureFunction(vertx, 9000))
             .andThen(length -> {
               System.out.println(length);
               context.assertEquals("Hello World".length() * 2, length);

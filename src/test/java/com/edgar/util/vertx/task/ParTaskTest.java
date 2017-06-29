@@ -41,7 +41,7 @@ public class ParTaskTest {
             });
     vertx.createHttpServer()
             .requestHandler(router::accept)
-            .listen(9000);
+            .listen(8888);
   }
 
   @After
@@ -114,7 +114,7 @@ public class ParTaskTest {
               }
               return sum;
             })
-            .flatMap(new FutureFunction(vertx))
+            .flatMap(new FutureFunction(vertx, 8888))
             .andThen(length -> {
               System.out.println(length);
               context.assertEquals(12, length);

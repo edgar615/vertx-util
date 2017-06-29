@@ -40,7 +40,7 @@ public class Tuple2TaskTest {
             });
     vertx.createHttpServer()
             .requestHandler(router::accept)
-            .listen(9000);
+            .listen(9001);
   }
 
   @After
@@ -91,7 +91,7 @@ public class Tuple2TaskTest {
 
     Task.par(future1, future2)
             .map((s, i) -> s.length() + i)
-            .flatMap(new FutureFunction(vertx))
+            .flatMap(new FutureFunction(vertx, 9001))
             .andThen(length -> {
               System.out.println(length);
               context.assertEquals("Hello World".length() * 4, length);

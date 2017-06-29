@@ -40,7 +40,7 @@ public class Tuple4TaskTest {
             });
     vertx.createHttpServer()
             .requestHandler(router::accept)
-            .listen(9000);
+            .listen(9003);
   }
 
   @After
