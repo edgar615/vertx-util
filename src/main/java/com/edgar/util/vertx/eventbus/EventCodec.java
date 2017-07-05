@@ -53,6 +53,6 @@ public class EventCodec implements MessageCodec<Event, Event> {
 
   @Override
   public byte systemCodecID() {
-    return 100;
+    return -1;
   }
 }

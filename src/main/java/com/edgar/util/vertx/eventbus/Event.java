@@ -55,14 +55,14 @@ public class Event {
    * @return 消息类型
    */
   public String type() {
-    return header.getString("type", "message");
+    return header.getString("type");
   }
 
   /**
    * @return 消息地址
    */
   public String address() {
-    return header.getString("type", "address");
+    return header.getString("address");
   }
 
   /**
@@ -78,5 +78,13 @@ public class Event {
 
   public String replyTo() {
     return header.getString("reply_to");
+  }
+
+  @Override
+  public String toString() {
+    return "Event{" +
+           "header=" + header +
+           ", body=" + body +
+           '}';
   }
 }

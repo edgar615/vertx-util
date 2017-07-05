@@ -9,10 +9,11 @@ import org.slf4j.LoggerFactory;
  *
  * @author Edgar  Date 2017/6/30
  */
+@Deprecated
 public class EventUtils {
   private static final Logger LOGGER = LoggerFactory.getLogger(EventUtils.class);
 
-  private static String toJsonString(JsonObject jsonObject) {
+  public static String toJsonString(JsonObject jsonObject) {
     StringBuilder sb = new StringBuilder();
     for (String field : jsonObject.fieldNames()) {
       sb.append(field)
@@ -23,7 +24,7 @@ public class EventUtils {
     return sb.toString();
   }
 
-  private static void outLog(Logger logger,  Event event, String type) {
+  public static void outLog(Logger logger,  Event event, String type) {
     logger.info("======> [{}] [{}] [{}] [{}] [{}]",
                 type,
                 event.id(),
@@ -32,7 +33,7 @@ public class EventUtils {
                 toJsonString(event.body()));
   }
 
-  private static void inLog(Logger logger, Event event) {
+  public static void inLog(Logger logger, Event event) {
     logger.info("<====== [{}] [{}] [{}]",
                 event.id(),
                 toJsonString(event.header()),
