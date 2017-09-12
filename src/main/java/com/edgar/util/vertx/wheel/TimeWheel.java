@@ -13,7 +13,9 @@ import java.util.stream.Collectors;
 
 /**
  * Created by edgar on 17-3-19.
+ * 没正式写完
  */
+@Deprecated
 public class TimeWheel {
 
   /**
