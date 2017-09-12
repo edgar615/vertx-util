@@ -32,7 +32,8 @@ public class MainVerticleDeployment {
     //检测依赖有没有形成闭环（会导致死循环），有没有未定义的verticle
     for (HierarchicalDeployment deployment : deployments) {
       if (checkUndefined(deployment)) {
-        throw new IllegalArgumentException("undefined verticle:" + deployment.getVerticleName());
+        throw new IllegalArgumentException("undefined dependency for:"
+                                           + deployment.getVerticleName());
       }
       if (checkCycle(deployment)) {
         throw new IllegalArgumentException("cycle dependency:" + deployment.getVerticleName());
