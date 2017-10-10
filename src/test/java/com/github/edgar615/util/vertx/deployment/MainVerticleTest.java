@@ -37,7 +37,7 @@ public class MainVerticleTest {
     int processors = Runtime.getRuntime().availableProcessors();
     JsonObject config = new JsonObject()
             .put("TestVerticle", new JsonObject()
-                    .put("class", "TestVerticle")
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle")
                     .put("instances", "5C"));
     MainVerticleDeployment deployment = new MainVerticleDeployment(new JsonObject().put
             ("verticles", config));
@@ -49,7 +49,7 @@ public class MainVerticleTest {
   public void undifinedDependencyShouldThrowException(TestContext testContext) {
     JsonObject config = new JsonObject()
             .put("TestVerticle", new JsonObject()
-                    .put("class", "TestVerticle")
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle")
                     .put("dependencies", new JsonArray().add("test")));
 //    MainVerticleDeployment deployment = new MainVerticleDeployment(new JsonObject().put
 //            ("verticles", config));
@@ -73,13 +73,13 @@ public class MainVerticleTest {
   public void cycleDependencyShouldThrowException(TestContext testContext) {
     JsonObject config = new JsonObject()
             .put("TestVerticle1", new JsonObject()
-                    .put("class", "TestVerticle")
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle")
                     .put("dependencies", new JsonArray().add("TestVerticle2")))
             .put("TestVerticle2", new JsonObject()
-                    .put("class", "TestVerticle")
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle")
                     .put("dependencies", new JsonArray().add("TestVerticle3")))
             .put("TestVerticle3", new JsonObject()
-                    .put("class", "TestVerticle")
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle")
                     .put("dependencies", new JsonArray().add("TestVerticle1")));
 //    MainVerticleDeployment deployment = new MainVerticleDeployment(new JsonObject().put
 //            ("verticles", config));
@@ -103,7 +103,7 @@ public class MainVerticleTest {
   public void testSingleDeploy(TestContext testContext) {
     JsonObject config = new JsonObject()
             .put("TestVerticle", new JsonObject()
-                    .put("class", "TestVerticle"));
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle"));
     MainVerticleDeployment deployment = new MainVerticleDeployment(new JsonObject().put
             ("verticles", config));
     Assert.assertEquals(1, deployment.getDeployments().size());
@@ -131,9 +131,9 @@ public class MainVerticleTest {
     });
     JsonObject config = new JsonObject()
             .put("TestVerticle", new JsonObject()
-                    .put("class", "TestVerticle"))
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle"))
             .put("TestVerticle2", new JsonObject()
-                    .put("class", "TestVerticle2"));
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle2"));
     MainVerticleDeployment deployment = new MainVerticleDeployment(new JsonObject().put
             ("verticles", config));
     Assert.assertEquals(2, deployment.getDeployments().size());
@@ -162,10 +162,10 @@ public class MainVerticleTest {
     });
     JsonObject config = new JsonObject()
             .put("TestVerticle", new JsonObject()
-                    .put("class", "TestVerticle")
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle")
                     .put("dependencies", new JsonArray().add("TestVerticle3")))
             .put("TestVerticle3", new JsonObject()
-                    .put("class", "TestVerticle3"));
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle3"));
     MainVerticleDeployment deployment = new MainVerticleDeployment(new JsonObject().put
             ("verticles", config));
     Assert.assertEquals(2, deployment.getDeployments().size());
@@ -197,12 +197,12 @@ public class MainVerticleTest {
     });
     JsonObject config = new JsonObject()
             .put("TestVerticle", new JsonObject()
-                    .put("class", "TestVerticle")
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle")
                     .put("dependencies", new JsonArray().add("TestVerticle3").add("TestVerticle2")))
             .put("TestVerticle2", new JsonObject()
-                    .put("class", "TestVerticle2"))
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle2"))
             .put("TestVerticle3", new JsonObject()
-                    .put("class", "TestVerticle3"));
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle3"));
     MainVerticleDeployment deployment = new MainVerticleDeployment(new JsonObject().put
             ("verticles", config));
     Assert.assertEquals(3, deployment.getDeployments().size());
@@ -235,13 +235,13 @@ public class MainVerticleTest {
     });
     JsonObject config = new JsonObject()
             .put("TestVerticle", new JsonObject()
-                    .put("class", "TestVerticle")
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle")
                     .put("dependencies", new JsonArray().add("TestVerticle3").add("TestVerticle2")))
             .put("TestVerticle2", new JsonObject()
-                    .put("class", "TestVerticle2")
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle2")
                     .put("config", new JsonObject().put("port", 2000)))
             .put("TestVerticle3", new JsonObject()
-                    .put("class", "TestVerticle3"));
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle3"));
     MainVerticleDeployment deployment = new MainVerticleDeployment(new JsonObject().put
             ("verticles", config));
     Assert.assertEquals(3, deployment.getDeployments().size());
@@ -274,16 +274,16 @@ public class MainVerticleTest {
     });
     JsonObject config = new JsonObject()
             .put("TestVerticle", new JsonObject()
-                    .put("class", "TestVerticle")
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle")
                     .put("dependencies", new JsonArray().add("TestVerticle3").add("TestVerticle2")))
             .put("TestVerticle2", new JsonObject()
-                    .put("class", "TestVerticle2")
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle2")
                     .put("worker", true)
                     .put("config", new JsonObject().put("port", 2000)))
             .put("TestVerticle3", new JsonObject()
-                    .put("class", "TestVerticle3"))
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle3"))
             .put("TestVerticle4", new JsonObject()
-                    .put("class", "TestVerticle4")
+                    .put("class", "com.github.edgar615.util.vertx.deployment.TestVerticle4")
                     .put("dependencies", new JsonArray().add("TestVerticle2"))
                     .put("instances", 3));
     MainVerticleDeployment deployment = new MainVerticleDeployment(new JsonObject().put
