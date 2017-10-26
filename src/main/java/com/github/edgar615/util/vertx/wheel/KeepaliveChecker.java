@@ -49,6 +49,8 @@ public interface KeepaliveChecker {
    */
   int size();
 
+  boolean close();
+
   /**
    * 创建一个KeepaliveChecker
    *

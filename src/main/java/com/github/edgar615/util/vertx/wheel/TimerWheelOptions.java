@@ -5,52 +5,53 @@ package com.github.edgar615.util.vertx.wheel;
  */
 public class TimerWheelOptions {
 
-  public static final String DEFAULT_TIMER_ADDED_ADDRESS = "com.edgar.timerwheel.added";
+  public static final String DEFAULT_TIMER_ANNOUNCE_ADDRESS = "com.edgar.timerwheel.announce";
 
-  public static final String DEFAULT_TIMER_DELETED_ADDRESS = "com.edgar.timerwheel.deleted";
+  public static final String DEFAULT_TIMER_CANCEL_ADDRESS = "com.edgar.timerwheel.cancel";
 
-  public static final String DEFAULT_TIMER_TRIGGERED_ADDRESS = "com.edgar.timerwheel.triggered";
-
-  /**
-   * 新增事件
-   */
-  private String addedAddress = DEFAULT_TIMER_ADDED_ADDRESS;
+  public static final int DEFAULT_INTERVAL = 3600;
 
   /**
-   * 删除事件
+   * 执行任务事件
    */
-  private String deletedAddress = DEFAULT_TIMER_DELETED_ADDRESS;
+  private String announceAddress = DEFAULT_TIMER_ANNOUNCE_ADDRESS;
 
   /**
-   * 触发事件
+   * 取消任务
    */
-  private String triggeredAddress = DEFAULT_TIMER_TRIGGERED_ADDRESS;
+  private String cancelAddress = DEFAULT_TIMER_CANCEL_ADDRESS;
 
-  public String getAddedAddress() {
-    return addedAddress;
+
+  /**
+   * 事件轮的桶的大小
+   */
+  private int interval = DEFAULT_INTERVAL;
+
+
+  public String getAnnounceAddress() {
+    return announceAddress;
   }
 
-  public TimerWheelOptions setAddedAddress(String addedAddress) {
-    this.addedAddress = addedAddress;
+  public TimerWheelOptions setAnnounceAddress(String announceAddress) {
+    this.announceAddress = announceAddress;
     return this;
   }
 
-  public String getDeletedAddress() {
-    return deletedAddress;
+  public String getCancelAddress() {
+    return cancelAddress;
   }
 
-  public TimerWheelOptions setDeletedAddress(String deletedAddress) {
-    this.deletedAddress = deletedAddress;
+  public TimerWheelOptions setCancelAddress(String cancelAddress) {
+    this.cancelAddress = cancelAddress;
     return this;
   }
 
-  public String getTriggeredAddress() {
-    return triggeredAddress;
+  public int getInterval() {
+    return interval;
   }
 
-  public TimerWheelOptions setTriggeredAddress(String triggeredAddress) {
-    this.triggeredAddress = triggeredAddress;
+  public TimerWheelOptions setInterval(int interval) {
+    this.interval = interval;
     return this;
   }
-
 }

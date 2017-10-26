@@ -4,6 +4,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
@@ -43,11 +44,6 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
    */
   private final Map<Integer, Set<Integer>> bucket = new ConcurrentHashMap<>();
 
-//  /**
-//   * 序列号
-//   */
-//  private final AtomicInteger seq = new AtomicInteger(0);
-
   /**
    * 设备掉线的事件地址
    */
@@ -58,6 +54,8 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
    */
   private final String firstConnAddress;
 
+  private final long timer;
+
   KeepaliveCheckerImpl(Vertx vertx, KeepaliveOptions options) {
     this.vertx = vertx;
     this.interval = options.getInterval();
@@ -65,25 +63,30 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     this.firstConnAddress = options.getFirstConnAddress();
     this.period = options.getStep();
 
+    //初始化时间轮
     for (int i = 0; i <= interval; i++) {
       bucket.put(i, new CopyOnWriteArraySet<>());
     }
-    vertx.setPeriodic(period, l -> {
+    //周期性移动指针
+    timer = vertx.setPeriodic(period, l -> {
       Set<Integer> oldList = forward();
       if (oldList.size() > 0) {
         vertx.eventBus().publish(disConnAddress,
-            new JsonObject().put("ids", new JsonArray(new ArrayList(oldList))));
+                                 new JsonObject()
+                                         .put("ids", new JsonArray(new ArrayList(oldList)))
+                                         .put("time", Instant.now().getEpochSecond()));
       }
     });
   }
 
   /**
    * 游标向前移动一格
+   *
    * @return
    */
   private synchronized Set<Integer> forward() {
     int expiredSolt = cursor
-        .getAndAccumulate(1, (left, right) -> left + right > interval ? 0 : left + right);
+            .getAndAccumulate(1, (left, right) -> left + right > interval ? 0 : left + right);
     Set<Integer> disConnectedIds = bucket.put(expiredSolt, new CopyOnWriteArraySet<>());
     disConnectedIds.forEach(i -> location.remove(i));
     return disConnectedIds;
@@ -91,6 +94,7 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
 
   /**
    * 向桶中增加一个心跳．
+   *
    * @param id
    * @return 如果是第一次添加（或者掉线后再次添加）返回true
    */
@@ -101,7 +105,7 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     }
     Integer oldLocaction = location.put(id, solt);
     if (oldLocaction != null) {
-     bucket.get(oldLocaction).remove(id);
+      bucket.get(oldLocaction).remove(id);
     }
     bucket.get(solt).add(id);
 
@@ -113,7 +117,7 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     boolean firstCheck = addToBucket(id);
     if (firstCheck) {
       vertx.eventBus().publish(firstConnAddress,
-          new JsonObject().put("id", id));
+                               new JsonObject().put("id", id));
     }
   }
 
@@ -122,5 +126,8 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     return location.size();
   }
 
-
+  @Override
+  public boolean close() {
+    return vertx.cancelTimer(timer);
+  }
 }

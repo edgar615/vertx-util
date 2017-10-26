@@ -17,9 +17,36 @@ public class ScheduledTask {
    */
   private final AtomicInteger cycleNum;
 
+  /**
+   * 周期
+   */
+  private final long period;
+
+  /**
+   * 周期性任务标识
+   */
+  private boolean periodTask;
+
   public ScheduledTask(int id, int cycleNum) {
     this.id = id;
     this.cycleNum = new AtomicInteger(cycleNum);
+    this.period = 0;
+    this.periodTask = false;
+  }
+
+  public ScheduledTask(int id, int cycleNum, long period) {
+    this.id = id;
+    this.cycleNum = new AtomicInteger(cycleNum);
+    this.period = period;
+    this.periodTask = true;
+  }
+
+  public boolean periodTask() {
+    return periodTask;
+  }
+
+  public long period() {
+    return period;
   }
 
   public int id() {
