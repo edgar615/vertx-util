@@ -22,7 +22,7 @@
 
         <junit.version>4.12</junit.version>
         <awaitility.version>2.0.0</awaitility.version>
-        <vertx.version>3.4.2</vertx.version>
+        <vertx.version>3.5.0</vertx.version>
         <slf4j.version>1.7.24</slf4j.version>
 
     </properties>
