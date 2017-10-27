@@ -173,6 +173,10 @@
                     <version>2.10</version>
                     <configuration>
                         <argLine>-noverify</argLine>
+                        <excludes>
+                            <exclude>**/KeepaliveCheckerTest.java</exclude>
+                            <exclude>**/TimeWheelTest.java</exclude>
+                        </excludes>
                     </configuration>
                 </plugin>
 
