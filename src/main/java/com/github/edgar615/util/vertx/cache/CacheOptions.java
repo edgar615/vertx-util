@@ -1,11 +1,13 @@
 package com.github.edgar615.util.vertx.cache;
 
+import io.vertx.core.json.JsonObject;
+
 /**
  * Created by Edgar on 2017/10/27.
  *
  * @author Edgar  Date 2017/10/27
  */
-public class GuavaCacheOptions {
+public class CacheOptions {
 
   /**
    * 单位秒
@@ -22,11 +24,20 @@ public class GuavaCacheOptions {
    */
   private Long maximumSize;
 
+  public CacheOptions() {
+  }
+
+  public CacheOptions(JsonObject json) {
+    this();
+    CacheOptionsConverter.fromJson(json, this);
+  }
+
+
   public Long getExpireAfterWrite() {
     return expireAfterWrite;
   }
 
-  public GuavaCacheOptions setExpireAfterWrite(Long expireAfterWrite) {
+  public CacheOptions setExpireAfterWrite(Long expireAfterWrite) {
     this.expireAfterWrite = expireAfterWrite;
     return this;
   }
@@ -35,7 +46,7 @@ public class GuavaCacheOptions {
     return expireAfterAccess;
   }
 
-  public GuavaCacheOptions setExpireAfterAccess(Long expireAfterAccess) {
+  public CacheOptions setExpireAfterAccess(Long expireAfterAccess) {
     this.expireAfterAccess = expireAfterAccess;
     return this;
   }
@@ -44,7 +55,7 @@ public class GuavaCacheOptions {
     return maximumSize;
   }
 
-  public GuavaCacheOptions setMaximumSize(Long maximumSize) {
+  public CacheOptions setMaximumSize(Long maximumSize) {
     this.maximumSize = maximumSize;
     return this;
   }

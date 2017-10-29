@@ -29,7 +29,7 @@ public class CuavaCacheTest {
 
   @Test
   public void testGet(TestContext testContext) {
-    Cache<String, String> cache = new GuavaCache<>(vertx, new GuavaCacheOptions());
+    Cache<String, String> cache = new GuavaCache<>(vertx,"test", new CacheOptions());
     AtomicBoolean check = new AtomicBoolean();
     cache.get("foo", ar -> {
       if (ar.succeeded()) {
@@ -44,7 +44,7 @@ public class CuavaCacheTest {
 
   @Test
   public void testLoadIfNull(TestContext testContext) {
-    Cache<String, String> cache = new GuavaCache<>(vertx, new GuavaCacheOptions());
+    Cache<String, String> cache = new GuavaCache<>(vertx,"test",new CacheOptions());
     AtomicInteger check = new AtomicInteger();
     AtomicInteger loadCount = new AtomicInteger();
     CacheLoader<String, String> loader = (key, handler) -> {
@@ -67,7 +67,7 @@ public class CuavaCacheTest {
 
   @Test
   public void testLoadThough(TestContext testContext) {
-    Cache<String, String> cache = new GuavaCache<>(vertx, new GuavaCacheOptions());
+    Cache<String, String> cache = new GuavaCache<>(vertx,"test",new CacheOptions());
     AtomicInteger check = new AtomicInteger();
     AtomicInteger loadCount = new AtomicInteger();
     CacheLoader<String, String> loader = (key, handler) -> {
@@ -90,7 +90,7 @@ public class CuavaCacheTest {
 
   @Test
   public void testPut(TestContext testContext) {
-    Cache<String, String> cache = new GuavaCache<>(vertx, new GuavaCacheOptions());
+    Cache<String, String> cache = new GuavaCache<>(vertx,"test",new CacheOptions());
     AtomicBoolean check = new AtomicBoolean();
     cache.get("foo", ar -> {
       if (ar.succeeded()) {
@@ -126,7 +126,7 @@ public class CuavaCacheTest {
 
   @Test
   public void testEvict(TestContext testContext) {
-    Cache<String, String> cache = new GuavaCache<>(vertx, new GuavaCacheOptions());
+    Cache<String, String> cache = new GuavaCache<>(vertx,"test",new CacheOptions());
     AtomicBoolean check1 = new AtomicBoolean();
     cache.put("foo","bar", ar -> {
       if (ar.succeeded()) {

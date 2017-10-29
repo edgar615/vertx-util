@@ -19,10 +19,13 @@ public class GuavaCache<K, V> implements Cache<K, V> {
 
   private final Vertx vertx;
 
+  private final String name;
+
   private final com.google.common.cache.Cache<K, V> cache;
 
-  public GuavaCache(Vertx vertx, GuavaCacheOptions options) {
+  public GuavaCache(Vertx vertx, String name, CacheOptions options) {
     this.vertx = vertx;
+    this.name = name;
     CacheBuilder builder = CacheBuilder.newBuilder()
             .ticker(Ticker.systemTicker());
     if (options.getExpireAfterAccess() != null) {
@@ -35,6 +38,11 @@ public class GuavaCache<K, V> implements Cache<K, V> {
       builder.maximumSize(options.getMaximumSize());
     }
     this.cache = builder.build();
+  }
+
+  @Override
+  public String name() {
+    return name;
   }
 
   @Override

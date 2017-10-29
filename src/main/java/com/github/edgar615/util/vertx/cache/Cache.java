@@ -6,6 +6,13 @@ import io.vertx.core.Handler;
 public interface Cache<K, V> {
 
   /**
+   * cache的名称
+   *
+   * @return
+   */
+  String name();
+
+  /**
    * 从缓存中取出一个值
    *
    * @param key           缓存键
