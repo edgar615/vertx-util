@@ -14,6 +14,7 @@
 ^|Name | Type ^| Description
 |[[disConnAddress]]`disConnAddress`|`String`|-
 |[[firstConnAddress]]`firstConnAddress`|`String`|-
+|[[heartbeatAddress]]`heartbeatAddress`|`String`|-
 |[[interval]]`interval`|`Number (int)`|-
 |[[step]]`step`|`Number (int)`|-
 |===

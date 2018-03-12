@@ -3,6 +3,8 @@ package com.github.edgar615.util.vertx.wheel;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -16,6 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by edgar on 17-3-19.
  */
 class KeepaliveCheckerImpl implements KeepaliveChecker {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(KeepaliveChecker.class);
 
   private final Vertx vertx;
 
@@ -37,12 +41,12 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
   /**
    * 记录心跳的在环形队列中的位置，每次收到心跳都需要更新心跳在环形队列中的位置，通过location可以很快定位到心跳在环形队列中的位置
    */
-  private final Map<Integer, Integer> location = new ConcurrentHashMap<>();
+  private final Map<String, Integer> location = new ConcurrentHashMap<>();
 
   /**
    * 环形队列
    */
-  private final Map<Integer, Set<Integer>> bucket = new ConcurrentHashMap<>();
+  private final Map<Integer, Set<String>> bucket = new ConcurrentHashMap<>();
 
   /**
    * 设备掉线的事件地址
@@ -54,6 +58,11 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
    */
   private final String firstConnAddress;
 
+  /**
+   * 心跳事件
+   */
+  private final String heartbeatAddress;
+
   private final long timer;
 
   KeepaliveCheckerImpl(Vertx vertx, KeepaliveOptions options) {
@@ -61,6 +70,7 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     this.interval = options.getInterval();
     this.disConnAddress = options.getDisConnAddress();
     this.firstConnAddress = options.getFirstConnAddress();
+    this.heartbeatAddress = options.getHeartbeatAddress();
     this.period = options.getStep();
 
     //初始化时间轮
@@ -69,13 +79,19 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     }
     //周期性移动指针
     timer = vertx.setPeriodic(period, l -> {
-      Set<Integer> oldList = forward();
+      Set<String> oldList = forward();
       if (oldList.size() > 0) {
         vertx.eventBus().publish(disConnAddress,
                                  new JsonObject()
                                          .put("ids", new JsonArray(new ArrayList(oldList)))
                                          .put("time", Instant.now().getEpochSecond()));
       }
+    });
+    vertx.eventBus().<JsonObject>consumer(heartbeatAddress, msg -> {
+      JsonObject jsonObject = msg.body();
+      String id = jsonObject.getString("id");
+      heartbeat(id);
+      LOGGER.debug("heartbeat: {} [{}]", id, jsonObject.encode());
     });
   }
 
@@ -84,10 +100,10 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
    *
    * @return
    */
-  private synchronized Set<Integer> forward() {
+  private synchronized Set<String> forward() {
     int expiredSolt = cursor
             .getAndAccumulate(1, (left, right) -> left + right > interval ? 0 : left + right);
-    Set<Integer> disConnectedIds = bucket.put(expiredSolt, new CopyOnWriteArraySet<>());
+    Set<String> disConnectedIds = bucket.put(expiredSolt, new CopyOnWriteArraySet<>());
     disConnectedIds.forEach(i -> location.remove(i));
     return disConnectedIds;
   }
@@ -98,7 +114,7 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
    * @param id
    * @return 如果是第一次添加（或者掉线后再次添加）返回true
    */
-  private synchronized boolean addToBucket(Integer id) {
+  private synchronized boolean addToBucket(String id) {
     int solt = cursor.get() - 1;
     if (solt < 0) {
       solt = interval;
@@ -113,7 +129,7 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
   }
 
   @Override
-  public void add(Integer id) {
+  public void heartbeat(String id) {
     boolean firstCheck = addToBucket(id);
     if (firstCheck) {
       vertx.eventBus().publish(firstConnAddress,

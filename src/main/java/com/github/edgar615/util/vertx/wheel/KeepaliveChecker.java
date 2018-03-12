@@ -40,7 +40,7 @@ public interface KeepaliveChecker {
    *
    * @param id 设备id
    */
-  void add(Integer id);
+  void heartbeat(String  id);
 
   /**
    * 在线的数量
