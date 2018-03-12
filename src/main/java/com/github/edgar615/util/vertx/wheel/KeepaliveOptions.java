@@ -1,13 +1,17 @@
 package com.github.edgar615.util.vertx.wheel;
 
+import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.json.JsonObject;
+
 /**
  * Created by edgar on 17-3-19.
  */
+@DataObject(generateConverter = true)
 public class KeepaliveOptions {
 
-  public static final String DEFAULT_DISCONN_ADDRESS = "com.edgar.keepalive.disconnected";
+  public static final String DEFAULT_DISCONN_ADDRESS = "com.github.edgar615.keepalive.disconnected";
 
-  public static final String DEFAULT_FIRST_CONN_ADDRESS = "com.edgar.keepalive.firstconnected";
+  public static final String DEFAULT_FIRST_CONN_ADDRESS = "com.github.edgar615.keepalive.firstconnected";
 
   public static final int DEFAULT_INTERVAL = 30;
 
@@ -37,6 +41,21 @@ public class KeepaliveOptions {
   public int getStep() {
     return step;
   }
+
+  public KeepaliveOptions() {
+  }
+
+  public KeepaliveOptions(JsonObject json) {
+    this();
+    KeepaliveOptionsConverter.fromJson(json, this);
+  }
+
+  public JsonObject toJson() {
+    JsonObject json = new JsonObject();
+    KeepaliveOptionsConverter.toJson(this, json);
+    return json;
+  }
+
 
   public KeepaliveOptions setStep(int step) {
     this.step = step;

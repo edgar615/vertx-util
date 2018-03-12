@@ -1,0 +1,37 @@
+= Cheatsheets
+
+[[KeepaliveOptions]]
+== KeepaliveOptions
+
+++++
+ Created by edgar on 17-3-19.
+++++
+'''
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[disConnAddress]]`disConnAddress`|`String`|-
+|[[firstConnAddress]]`firstConnAddress`|`String`|-
+|[[interval]]`interval`|`Number (int)`|-
+|[[step]]`step`|`Number (int)`|-
+|===
+
+[[TimerWheelOptions]]
+== TimerWheelOptions
+
+++++
+ Created by edgar on 17-3-19.
+++++
+'''
+
+[cols=">25%,^25%,50%"]
+[frame="topbot"]
+|===
+^|Name | Type ^| Description
+|[[announceAddress]]`announceAddress`|`String`|-
+|[[cancelAddress]]`cancelAddress`|`String`|-
+|[[interval]]`interval`|`Number (int)`|-
+|===
+

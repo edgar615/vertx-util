@@ -1,13 +1,17 @@
 package com.github.edgar615.util.vertx.wheel;
 
+import io.vertx.codegen.annotations.DataObject;
+import io.vertx.core.json.JsonObject;
+
 /**
  * Created by edgar on 17-3-19.
  */
+@DataObject(generateConverter = true)
 public class TimerWheelOptions {
 
-  public static final String DEFAULT_TIMER_ANNOUNCE_ADDRESS = "com.edgar.timerwheel.announce";
+  public static final String DEFAULT_TIMER_ANNOUNCE_ADDRESS = "com.github.edgar615.timerwheel.announce";
 
-  public static final String DEFAULT_TIMER_CANCEL_ADDRESS = "com.edgar.timerwheel.cancel";
+  public static final String DEFAULT_TIMER_CANCEL_ADDRESS = "com.github.edgar615.timerwheel.cancel";
 
   public static final int DEFAULT_INTERVAL = 3600;
 
@@ -27,6 +31,19 @@ public class TimerWheelOptions {
    */
   private int interval = DEFAULT_INTERVAL;
 
+  public TimerWheelOptions() {
+  }
+
+  public TimerWheelOptions(JsonObject json) {
+    this();
+    TimerWheelOptionsConverter.fromJson(json, this);
+  }
+
+  public JsonObject toJson() {
+    JsonObject json = new JsonObject();
+    TimerWheelOptionsConverter.toJson(this, json);
+    return json;
+  }
 
   public String getAnnounceAddress() {
     return announceAddress;
