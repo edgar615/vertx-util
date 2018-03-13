@@ -3,8 +3,6 @@ package com.github.edgar615.util.vertx.wheel;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -18,8 +16,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Created by edgar on 17-3-19.
  */
 class KeepaliveCheckerImpl implements KeepaliveChecker {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(KeepaliveChecker.class);
 
   private final Vertx vertx;
 
@@ -58,11 +54,6 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
    */
   private final String firstConnAddress;
 
-  /**
-   * 心跳事件
-   */
-  private final String heartbeatAddress;
-
   private final long timer;
 
   KeepaliveCheckerImpl(Vertx vertx, KeepaliveOptions options) {
@@ -70,7 +61,6 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     this.interval = options.getInterval();
     this.disConnAddress = options.getDisConnAddress();
     this.firstConnAddress = options.getFirstConnAddress();
-    this.heartbeatAddress = options.getHeartbeatAddress();
     this.period = options.getStep();
 
     //初始化时间轮
@@ -86,12 +76,6 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
                                          .put("ids", new JsonArray(new ArrayList(oldList)))
                                          .put("time", Instant.now().getEpochSecond()));
       }
-    });
-    vertx.eventBus().<JsonObject>consumer(heartbeatAddress, msg -> {
-      JsonObject jsonObject = msg.body();
-      String id = jsonObject.getString("id");
-      heartbeat(id);
-      LOGGER.debug("heartbeat: {} [{}]", id, jsonObject.encode());
     });
   }
 

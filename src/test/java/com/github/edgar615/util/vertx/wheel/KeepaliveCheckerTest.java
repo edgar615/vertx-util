@@ -43,8 +43,8 @@ public class KeepaliveCheckerTest {
     KeepaliveChecker checker = new KeepaliveCheckerImpl(vertx, options);
 
     checker.heartbeat("1");
-//    checker.heartbeat("2");
-    vertx.eventBus().send(options.getHeartbeatAddress(), new JsonObject().put("id", "2"));
+    checker.heartbeat("2");
+//    vertx.eventBus().send(options.getHeartbeatAddress(), new JsonObject().put("id", "2"));
 
     TimeUnit.SECONDS.sleep(1);
 

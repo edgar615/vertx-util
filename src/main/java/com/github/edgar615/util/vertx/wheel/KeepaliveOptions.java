@@ -9,21 +9,15 @@ import io.vertx.core.json.JsonObject;
 @DataObject(generateConverter = true)
 public class KeepaliveOptions {
 
-  public static final String DEFAULT_HEARTBEAT_ADDRESS
-          = "com.github.edgar615.keepalive.heartbeat";
+  public static final String DEFAULT_DISCONN_ADDRESS
+          = "__com.github.edgar615.keepalive.disconnected";
 
-  public static final String DEFAULT_DISCONN_ADDRESS = "com.github.edgar615.keepalive.disconnected";
-
-  public static final String DEFAULT_FIRST_CONN_ADDRESS = "com.github.edgar615.keepalive.firstconnected";
+  public static final String DEFAULT_FIRST_CONN_ADDRESS
+          = "__com.github.edgar615.keepalive.firstconnected";
 
   public static final int DEFAULT_INTERVAL = 30;
 
   public static final int DEFAULT_STEP = 1000;
-
-  /**
-   * 心跳事件
-   */
-  private String heartbeatAddress = DEFAULT_HEARTBEAT_ADDRESS;
 
   /**
    * 掉线事件
@@ -96,12 +90,4 @@ public class KeepaliveOptions {
     return this;
   }
 
-  public String getHeartbeatAddress() {
-    return heartbeatAddress;
-  }
-
-  public KeepaliveOptions setHeartbeatAddress(String heartbeatAddress) {
-    this.heartbeatAddress = heartbeatAddress;
-    return this;
-  }
 }

@@ -33,9 +33,6 @@ public class KeepaliveOptionsConverter {
     if (json.getValue("firstConnAddress") instanceof String) {
       obj.setFirstConnAddress((String)json.getValue("firstConnAddress"));
     }
-    if (json.getValue("heartbeatAddress") instanceof String) {
-      obj.setHeartbeatAddress((String)json.getValue("heartbeatAddress"));
-    }
     if (json.getValue("interval") instanceof Number) {
       obj.setInterval(((Number)json.getValue("interval")).intValue());
     }
@@ -50,9 +47,6 @@ public class KeepaliveOptionsConverter {
     }
     if (obj.getFirstConnAddress() != null) {
       json.put("firstConnAddress", obj.getFirstConnAddress());
-    }
-    if (obj.getHeartbeatAddress() != null) {
-      json.put("heartbeatAddress", obj.getHeartbeatAddress());
     }
     json.put("interval", obj.getInterval());
     json.put("step", obj.getStep());
