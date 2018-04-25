@@ -44,14 +44,8 @@ public class MainVerticle extends AbstractVerticle {
   @Override
   public void start(Future<Void> startFuture) throws Exception {
 
-    //注册codec
-    try {
-      registerMessageCodecs(vertx, config());
-    } catch (final CodecRegistrationException e) {
-      LOGGER.error("start", "abort", "Shutting down due to one or more errors", e);
-      vertx.close();
-      return;
-    }
+    //注册codec, codec的失败并不影响整个应用（可能会导致某些功能失败）
+    registerMessageCodecs(vertx, config());
 
     //启动
     MainVerticleDeployment deployment = new MainVerticleDeployment(config().copy());
@@ -105,11 +99,11 @@ public class MainVerticle extends AbstractVerticle {
         } catch (final InstantiationException | IllegalAccessException | ClassNotFoundException e) {
           LOGGER.warn("Failed to instantiate message codec:{}",
                       messageCodecClassName, e);
-          throw new CodecRegistrationException(
-                  String.format(
-                          "Failed to instantiate message codec %s",
-                          messageCodecClassName),
-                  e);
+//          throw new CodecRegistrationException(
+//                  String.format(
+//                          "Failed to instantiate message codec %s",
+//                          messageCodecClassName),
+//                  e);
         }
       } else {
         LOGGER.warn("Ignoring non-string message codec class name:{}",
