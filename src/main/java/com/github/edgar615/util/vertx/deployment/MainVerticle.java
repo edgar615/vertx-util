@@ -2,6 +2,7 @@ package com.github.edgar615.util.vertx.deployment;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -11,6 +12,8 @@ import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -39,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MainVerticle extends AbstractVerticle {
   private static final Logger LOGGER = LoggerFactory.getLogger(MainVerticle.class);
 
-  private final AtomicInteger verticleCount = new AtomicInteger(0);
+//  private final AtomicInteger verticleCount = new AtomicInteger(0);
 
   @Override
   public void start(Future<Void> startFuture) throws Exception {
@@ -50,37 +53,79 @@ public class MainVerticle extends AbstractVerticle {
     //启动
     MainVerticleDeployment deployment = new MainVerticleDeployment(config().copy());
 
+    //优先启动没有依赖的Verticle
+    List<Future> futures = new ArrayList<>();
     deployment.getDeployments().stream()
             .filter(o -> o.getDependencyVerticles().isEmpty())
-            .forEach(d -> d.deploy(vertx,
-                                   createHandler(deployment, d.getVerticleName(), startFuture)));
+            .forEach(d -> {
+              Future<Void> future = Future.future();
+              futures.add(future);
+              d.deploy(vertx,
+                       createHandler(deployment, d.getVerticleName(), future));
+            });
+    if (futures.isEmpty()) {
+      startFuture.complete();
+      return;
+    }
+    CompositeFuture.all(futures)
+            .setHandler(ar -> {
+              if (ar.succeeded()) {
+                LOGGER.info("MainVerticle deployed succeeded");
+                startFuture.complete();
+              } else {
+                LOGGER.error("MainVerticle deployed failed because {}", ar.cause().getMessage());
+                startFuture.fail(ar.cause());
+              }
+            });
   }
 
+  /**
+   * 每次有Verticle启动完成之后都检查一遍待启动的verticle，如果verticle的依赖全部启动完，则开始启动这个verticle
+   *
+   * @param deployment
+   * @param verticle
+   * @param completeFuture
+   */
   private void checkAndDeploy(MainVerticleDeployment deployment, String verticle,
-                              Future<Void> startFuture) {
+                              Future<Void> completeFuture) {
+    List<Future> futures = new ArrayList<>();
     deployment.getDeployments().forEach(d -> {
       boolean checkResult = d.checkPrecondition(verticle);
       if (checkResult) {
-        d.deploy(vertx, createHandler(deployment, d.getVerticleName(), startFuture));
+        Future<Void> future = Future.future();
+        futures.add(future);
+        d.deploy(vertx, createHandler(deployment, d.getVerticleName(), future));
       }
     });
-    if (verticleCount.get() == deployment.getDeployments().size()) {
-      if (!startFuture.isComplete()) {
-        startFuture.complete();
-      }
+    if (futures.isEmpty()) {
+      completeFuture.complete();
+      return;
     }
+    CompositeFuture.all(futures)
+            .setHandler(ar -> {
+              if (ar.succeeded()) {
+                completeFuture.complete();
+              } else {
+                completeFuture.fail(ar.cause());
+              }
+            });
+//    if (verticleCount.get() == deployment.getDeployments().size()) {
+//      if (!completeFuture.isComplete()) {
+//        completeFuture.complete();
+//      }
+//    }
   }
 
   private Handler<AsyncResult<String>> createHandler(MainVerticleDeployment deployment,
-                                                     String verticle, Future<Void> startFuture) {
+                                                     String verticle, Future<Void> completeFuture) {
     return ar -> {
       if (ar.failed()) {
         ar.cause().printStackTrace();
-        startFuture.fail(ar.cause());
+        completeFuture.fail(ar.cause());
         return;
       }
-      verticleCount.incrementAndGet();
-      checkAndDeploy(deployment, verticle, startFuture);
+//      verticleCount.incrementAndGet();
+      checkAndDeploy(deployment, verticle, completeFuture);
     };
   }
 
