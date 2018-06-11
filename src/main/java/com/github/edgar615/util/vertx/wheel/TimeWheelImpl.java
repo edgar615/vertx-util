@@ -65,11 +65,17 @@ class TimeWheelImpl implements TimeWheel {
       List<Integer> taskIds = tasks.stream()
               .map(t -> t.id())
               .collect(Collectors.toList());
-      if (tasks.size() > 0) {
-        vertx.eventBus().publish(announceAddress,
-                                 new JsonObject()
-                                         .put("tasks", new JsonArray(new ArrayList(taskIds)))
-                                         .put("time", Instant.now().getEpochSecond()));
+      if (taskIds.size() > 0) {
+        int bucket = taskIds.size() / 10 + 1;
+        for (int i = 0; i < bucket; i ++) {
+          //减少一次消息中发送的数量
+          int start = i * 10;
+          int end = Math.min(taskIds.size(), i * 10 + 10);
+          vertx.eventBus().publish(announceAddress,
+                  new JsonObject()
+                          .put("tasks", new JsonArray(taskIds.subList(start, end)))
+                          .put("time", Instant.now().getEpochSecond()));
+        }
       }
     });
   }

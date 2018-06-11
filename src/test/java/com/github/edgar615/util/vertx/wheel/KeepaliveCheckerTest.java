@@ -1,6 +1,7 @@
 package com.github.edgar615.util.vertx.wheel;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -8,7 +9,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -23,6 +27,26 @@ public class KeepaliveCheckerTest {
   @Before
   public void setUp() {
     vertx = Vertx.vertx();
+  }
+
+  @Test
+  public void test() {
+    List<Integer> list = new ArrayList<>();
+    for (int i = 0; i < 143; i ++) {
+      list.add(i);
+    }
+    System.out.println(list);
+    int len = 0;
+    int bucket = list.size() / 10 + 1;
+    for (int i = 0; i < bucket; i ++) {
+      //减少一次消息中发送的数量
+      int start = i * 10;
+      int end = Math.min(list.size(), i * 10 + 10);
+      List<Integer> newList = list.subList(start, end);
+      len += newList.size();
+      System.out.println(newList);
+    }
+    System.out.println(len);
   }
 
   @Test

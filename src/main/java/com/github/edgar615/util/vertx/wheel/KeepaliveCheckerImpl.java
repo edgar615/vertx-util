@@ -1,16 +1,20 @@
 package com.github.edgar615.util.vertx.wheel;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Created by edgar on 17-3-19.
@@ -69,12 +73,18 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     }
     //周期性移动指针
     timer = vertx.setPeriodic(period, l -> {
-      Set<String> oldList = forward();
+      List<String> oldList = new ArrayList<String>(forward());
       if (oldList.size() > 0) {
-        vertx.eventBus().publish(disConnAddress,
-                                 new JsonObject()
-                                         .put("ids", new JsonArray(new ArrayList(oldList)))
-                                         .put("time", Instant.now().getEpochSecond()));
+        int bucket = oldList.size() / 10 + 1;
+        for (int i = 0; i < bucket; i ++) {
+          //减少一次消息中发送的数量
+          int start = i * 10;
+          int end = Math.min(oldList.size(), i * 10 + 10);
+          vertx.eventBus().publish(disConnAddress,
+                  new JsonObject()
+                          .put("ids", new JsonArray(oldList.subList(start, end)))
+                          .put("time", Instant.now().getEpochSecond()));
+        }
       }
     });
   }

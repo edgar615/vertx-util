@@ -9,9 +9,9 @@ import io.vertx.core.json.JsonObject;
 @DataObject(generateConverter = true)
 public class TimerWheelOptions {
 
-  public static final String DEFAULT_TIMER_ANNOUNCE_ADDRESS = "com.github.edgar615.timerwheel.announce";
+  public static final String DEFAULT_TIMER_ANNOUNCE_ADDRESS = "__com.github.edgar615.timerwheel.announce";
 
-  public static final String DEFAULT_TIMER_CANCEL_ADDRESS = "com.github.edgar615.timerwheel.cancel";
+  public static final String DEFAULT_TIMER_CANCEL_ADDRESS = "__com.github.edgar615.timerwheel.cancel";
 
   public static final int DEFAULT_INTERVAL = 3600;
 
