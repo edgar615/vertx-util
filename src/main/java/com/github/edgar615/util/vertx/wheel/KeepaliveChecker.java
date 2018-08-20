@@ -43,6 +43,12 @@ public interface KeepaliveChecker {
   void heartbeat(String  id);
 
   /**
+   * 删除设备
+   * @param id
+   */
+  void remove(String id);
+
+  /**
    * 在线的数量
    *
    * @return

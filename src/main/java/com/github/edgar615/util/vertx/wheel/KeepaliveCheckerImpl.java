@@ -1,7 +1,5 @@
 package com.github.edgar615.util.vertx.wheel;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -14,7 +12,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 /**
  * Created by edgar on 17-3-19.
@@ -76,14 +73,14 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
       List<String> oldList = new ArrayList<String>(forward());
       if (oldList.size() > 0) {
         int bucket = oldList.size() / 10 + 1;
-        for (int i = 0; i < bucket; i ++) {
+        for (int i = 0; i < bucket; i++) {
           //减少一次消息中发送的数量
           int start = i * 10;
           int end = Math.min(oldList.size(), i * 10 + 10);
           vertx.eventBus().publish(disConnAddress,
-                  new JsonObject()
-                          .put("ids", new JsonArray(oldList.subList(start, end)))
-                          .put("time", Instant.now().getEpochSecond()));
+                                   new JsonObject()
+                                           .put("ids", new JsonArray(oldList.subList(start, end)))
+                                           .put("time", Instant.now().getEpochSecond()));
         }
       }
     });
@@ -113,13 +110,13 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
     if (solt < 0) {
       solt = interval;
     }
-    Integer oldLocaction = location.put(id, solt);
-    if (oldLocaction != null) {
-      bucket.get(oldLocaction).remove(id);
+    Integer oldLocation = location.put(id, solt);
+    if (oldLocation != null) {
+      bucket.get(oldLocation).remove(id);
     }
     bucket.get(solt).add(id);
 
-    return oldLocaction == null;
+    return oldLocation == null;
   }
 
   @Override
@@ -129,6 +126,15 @@ class KeepaliveCheckerImpl implements KeepaliveChecker {
       vertx.eventBus().publish(firstConnAddress,
                                new JsonObject().put("id", id));
     }
+  }
+
+  @Override
+  public void remove(String id) {
+    Integer solt = location.remove(id);
+    if (solt == null) {
+      return;
+    }
+    bucket.get(solt).remove(id);
   }
 
   @Override

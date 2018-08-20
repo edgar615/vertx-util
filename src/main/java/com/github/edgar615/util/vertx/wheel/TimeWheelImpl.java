@@ -141,6 +141,15 @@ class TimeWheelImpl implements TimeWheel {
   }
 
   @Override
+  public void remove(int taskId) {
+    Integer solt = location.remove(taskId);
+    if (solt == null) {
+      return;
+    }
+    bucket.get(solt).removeIf(t -> t.id() == taskId);
+  }
+
+  @Override
   public int size() {
     int size = 0;
     for (Map.Entry<Integer, Set<ScheduledTask>> tasks : bucket.entrySet()) {

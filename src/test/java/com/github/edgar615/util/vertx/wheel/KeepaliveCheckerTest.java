@@ -136,4 +136,43 @@ public class KeepaliveCheckerTest {
 
   }
 
+  @Test
+  public void testRemove(TestContext testContext) throws InterruptedException {
+    KeepaliveOptions options = new KeepaliveOptions()
+            .setInterval(5);
+    List<String> first = new ArrayList<>();
+    List<String> dis = new ArrayList<>();
+
+    vertx.eventBus().<JsonObject>consumer(options.getDisConnAddress(), removed -> {
+      System.out.println(System.currentTimeMillis() + ",removed:" + removed.body());
+      dis.addAll(removed.body().getJsonArray("ids").getList());
+    });
+    vertx.eventBus().<JsonObject>consumer(options.getFirstConnAddress(), added -> {
+      System.out.println(System.currentTimeMillis() + ",added:" + added.body());
+      first.add(added.body().getString("id"));
+    });
+    KeepaliveChecker checker = new KeepaliveCheckerImpl(vertx, options);
+
+    checker.heartbeat("1");
+    checker.heartbeat("2");
+//    vertx.eventBus().send(options.getHeartbeatAddress(), new JsonObject().put("id", "2"));
+
+    TimeUnit.SECONDS.sleep(1);
+
+    testContext.assertEquals(2, checker.size());
+
+    checker.remove("1");
+
+    testContext.assertEquals(1, checker.size());
+
+    TimeUnit.SECONDS.sleep(5);
+    testContext.assertEquals(0, checker.size());
+
+    checker.heartbeat("1");
+    TimeUnit.SECONDS.sleep(1);
+    testContext.assertEquals(1, checker.size());
+
+    testContext.assertEquals(3, first.size());
+    testContext.assertEquals(1, dis.size());
+  }
 }

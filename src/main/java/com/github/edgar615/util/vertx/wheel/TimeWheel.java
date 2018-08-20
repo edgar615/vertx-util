@@ -16,6 +16,8 @@ public interface TimeWheel {
 
   void addTask(int taskId, long delay, long period);
 
+  void remove(int taskId);
+
   int size();
 
   boolean close();

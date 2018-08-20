@@ -114,4 +114,30 @@ public class TimeWheelTest {
     testContext.assertEquals(4, exeIds.size());
     Assert.assertEquals(1, exeIds.get(1), 0);
   }
+
+  @Test
+  public void testRemove(TestContext testContext) throws InterruptedException {
+    TimerWheelOptions options = new TimerWheelOptions()
+            .setInterval(5);
+    TimeWheelImpl timeWheel = new TimeWheelImpl(vertx, options);
+    List<Integer> exeIds = new ArrayList<>();
+    vertx.eventBus().<JsonObject>consumer(options.getAnnounceAddress(), removed -> {
+      System.out.println(System.currentTimeMillis() + ",removed:" + removed.body());
+      exeIds.addAll(removed.body().getJsonArray("tasks").getList());
+    });
+    System.out.println(System.currentTimeMillis());
+    timeWheel.addTask(1, 7);
+    timeWheel.addTask(2, 4);
+    timeWheel.addTask(3, 3);
+    timeWheel.addTask(4, 2);
+    timeWheel.addTask(4, 1);
+
+    TimeUnit.SECONDS.sleep(2);
+    timeWheel.remove(1);
+    TimeUnit.SECONDS.sleep(11);
+
+    testContext.assertEquals(3, exeIds.size());
+    Assert.assertEquals(2, exeIds.get(2), 0);
+  }
+
 }
